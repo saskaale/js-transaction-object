@@ -2,8 +2,8 @@ import DEQueue from './queue';
 import uuidv1 from 'uuid/v1';
 
 export default class History{
-  constructor(){
-    this._history = new DEQueue([{uuid:uuidv1()}]);
+  constructor(uuid){
+    this._history = new DEQueue([{uuid}]);
   }
   onNew(uuid, data){
     this._history.append({uuid, data});

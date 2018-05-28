@@ -11,7 +11,8 @@ class DataStruct{
 
     this.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.EVERY;
 
-    this._history = new History();
+    this._version = uuidv1();
+    this._history = new History(this._version);
 
     this.begin(false);
     this.data = o;
@@ -20,11 +21,14 @@ class DataStruct{
 
   /*********** Data accessors ************/
 
-/*  batch( () => ){
+  batch(action){
+    this.begin();
+    action(this);
+    this.commit();
     this.immutable.withMutations(m => {
       let MutableData =
     })
-  } */
+  }
   get data(){
     return this._data;
   }
@@ -44,10 +48,13 @@ class DataStruct{
     return this._version;
   }
   begin(user = true){
-    if(this._history.last().data !== this._immutable){
+    let last = this._history.last();
+    if(last.data !== this._immutable){
       throw new Error("You cannot call begin() while having already some changes");
     }
-    this._version = uuidv1();
+    if(this._version === last.uuid){
+      this._version = uuidv1();
+    }
     this._started = user;
   }
   rollback(to){
@@ -75,7 +82,7 @@ class DataStruct{
         this.commit();
       }else if(this.AUTOCOMMIT_STRATEGY === DataStruct.AUTOCOMMIT_STRATEGIES.ASYNC){
         if(!this._commitTimeout){
-          this._commitTimeout = window.setTimeout(() => {
+          this._commitTimeout = setTimeout(() => {
             this._commitTimeout = undefined;
             this.commit();
           },0)
