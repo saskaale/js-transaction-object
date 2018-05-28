@@ -1,5 +1,4 @@
 import Immutable from 'immutable';
-import Utils from './utils';
 import diff from 'immutablediff';
 import History from './history';
 import dataproxy from './dataproxy';
