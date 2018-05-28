@@ -20,15 +20,6 @@ class DataStruct{
   }
 
   /*********** Data accessors ************/
-
-  batch(action){
-    this.begin();
-    action(this);
-    this.commit();
-    this.immutable.withMutations(m => {
-      let MutableData =
-    })
-  }
   get data(){
     return this._data;
   }
@@ -44,6 +35,14 @@ class DataStruct{
   }
 
   /***** TRANSACTION SUPPORT ******/
+  batch(action){
+    this.begin();
+    action(this);
+    this.commit();
+/*    this.immutable.withMutations(m => {
+      let MutableData =
+    }) */
+  }
   get transactionUuid(){
     return this._version;
   }
