@@ -28,6 +28,18 @@ describe('DataStruct', () => {
     });
   });
 
+  describe('#delete', () => {
+    let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
+    let data = obj.data;
+
+    it('check', () => {
+      assert(data.a !== 1);
+      assert(data.a.a1 === 1);
+      delete data.a;
+      assert(data.a === undefined);
+    });
+  });
+
   describe('#transactions', () => {
     it('nocommit_default', () => {
       let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});

@@ -28,6 +28,7 @@ function dataproxy(source, path){
       source._autobegin();
       source._immutable = source._immutable.removeIn([...path,prop]);
       source._autocommit();
+      return true;
     },
     ownKeys: (_, prop) => {
       const [ ...keys ] = source._immutable.getIn(path).keys();

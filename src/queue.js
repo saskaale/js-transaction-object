@@ -26,6 +26,9 @@ export default class DEQueue{
   cutEnd(i){
     this._data.length = i+1;
   }
+  nth(n){
+    return this._data[n];
+  }
   *beginEnd(){
     for(let i = this._data.length-1; i >= 0; i--)
       yield [i, this._data[i]];

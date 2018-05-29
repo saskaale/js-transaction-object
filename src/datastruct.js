@@ -14,6 +14,8 @@ class DataStruct{
     this._version = uuidv1();
     this._history = new History(this._version);
 
+    this.subscribtions = new Map();
+
     this.begin(false);
     this.data = o;
     this.commit();
@@ -32,6 +34,13 @@ class DataStruct{
   }
   set immutable(o){
     this._immutable = o;
+  }
+  subscribe(cbk){
+    const key = Symbol('subscribtion');
+    this.subscribtions.set(key, cbk);
+
+    const unsubscribe = () => this.subscribtions.delete(key);
+    return unsubscribe;
   }
 
   /***** TRANSACTION SUPPORT ******/
@@ -61,10 +70,20 @@ class DataStruct{
     this._version = history.uuid;
     this._immutable = history.data;
   }
+  diff(from,to){
+    return diff(from,to);
+  }
   commit(){
-    if(this._history.last().data !== this._immutable){
+    const oldhistory = this._history.last();
+    if(oldhistory.data !== this._immutable){
       this._history.onNew(this._version, this._immutable);
       this._started = false;
+      let newhistory = this._history.last();
+      let datadiff;
+      this.subscribtions.forEach(subscribtion => {
+        datadiff = datadiff || diff(oldhistory.data, newhistory.data);
+        subscribtion(datadiff);
+      });
     }
   }
 
