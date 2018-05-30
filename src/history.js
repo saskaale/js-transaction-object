@@ -17,11 +17,12 @@ export default class History{
     if(to){
       for(const [i, {uuid}] of this._history.beginEnd()){
         if(uuid === to){
-          for(let k = this._history.length-1; k >= i; k--){
+          this._history.cutEnd(i);
+/*          for(let k = this._history.length-1; k >= i; k--){
   //          this._search.remove(this._history.pop_last(i).uuid);
             this._history.pop_last(i);
           }
-          break;
+*/          break;
         }
       }
     }
