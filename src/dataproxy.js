@@ -1,6 +1,5 @@
-import {Map, List, fromJS} from 'immutable';
-
-let isImmutable = (e) => e instanceof Map || e instanceof List;
+import {fromJS} from 'immutable';
+import {isImmutable} from './utils';
 
 var proxySet = new WeakMap();
 

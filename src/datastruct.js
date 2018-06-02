@@ -1,4 +1,5 @@
-import Immutable from 'immutable';
+import Immutable,{fromJS} from 'immutable';
+import {isImmutable} from './utils';
 import diff from 'immutablediff';
 import History from './history';
 import dataproxy from './dataproxy';
@@ -6,19 +7,21 @@ import uuidv1 from 'uuid/v1';
 
 class DataStruct{
   constructor(o = {}){
-    this._started = false;
     this._data = dataproxy(this, []);
-
     this.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.EVERY;
-
-    this._version = uuidv1();
-    this._history = new History(this._version);
-
     this.subscribtions = new Map();
 
+    this.replace(o);
+  }
+  replace(o, version){
+    this._started = false;
+
+    this._version = version || uuidv1();
+    this._immutable = undefined;
+    this._history = new History(this._version);
     this.begin(false);
-    this.data = o;
-    this.commit();
+    this.immutable = o;
+    this.commit(false);
   }
 
   /*********** Data accessors ************/
@@ -26,14 +29,20 @@ class DataStruct{
     return this._data;
   }
   set data(o){
-    this._immutable = Immutable.fromJS(o);
+    this._immutable = o;
     this._autocommit();
   }
   get immutable(){
     return this._immutable;
   }
   set immutable(o){
+    o = o || {};
+    if(!isImmutable(o))
+      o = fromJS(o);
     this._immutable = o;
+  }
+  toJS(){
+    return this.immutable.toJSON();
   }
   subscribe(cbk){
     const key = Symbol('subscribtion');
@@ -45,12 +54,12 @@ class DataStruct{
 
   /***** TRANSACTION SUPPORT ******/
   batch(action){
+    /***
+      TODO: rewrite this with Immutable.withMutations
+     ***/
     this.begin();
     action(this);
     this.commit();
-/*    this.immutable.withMutations(m => {
-      let MutableData =
-    }) */
   }
   get transactionUuid(){
     return this._version;
@@ -73,17 +82,25 @@ class DataStruct{
   diff(from,to){
     return diff(from,to);
   }
-  commit(){
+  commit(user=true){
     const oldhistory = this._history.last();
     if(oldhistory.data !== this._immutable){
       this._history.onNew(this._version, this._immutable);
       this._started = false;
-      let newhistory = this._history.last();
-      let datadiff;
-      this.subscribtions.forEach(subscribtion => {
-        datadiff = datadiff || diff(oldhistory.data, newhistory.data);
-        subscribtion(datadiff);
-      });
+      if(user){
+        let newhistory = this._history.last();
+        let datadiff;
+        try {
+           throw new Error();
+        } catch(e) {
+          console.log(e.stack);
+        }
+        console.log("SUBSCRIPTIONS "+user);
+        this.subscribtions.forEach(subscribtion => {
+          datadiff = datadiff || diff(oldhistory.data, newhistory.data);
+          subscribtion(this._version, datadiff);
+        });
+      }
     }
   }
 

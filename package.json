@@ -2,7 +2,7 @@
   "name": "noapi",
   "version": "0.0.0",
   "description": "Some shit",
-  "main": "test.js",
+  "main": "src/datastruct.js",
   "license": "MIT",
   "devDependencies": {
     "assert": "^1.4.1",
