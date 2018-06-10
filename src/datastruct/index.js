@@ -4,23 +4,13 @@ import diff from 'immutablediff';
 import patch from 'immutablepatch';
 import History from './history';
 import dataproxy from './dataproxy';
-import uuidv1 from 'uuid/v1';
+import uuidv1 from 'uuid/v4';
 import Commitable from './commitable';
 
 const DataStruct = Commitable(class{
   constructor(o = {}){
     this._data = dataproxy(this, []);
-    this.replace(o);
-  }
-  replace(o, version){
-    this._started = false;
-
-    this._version = version || uuidv1();
-    this._immutable = undefined;
-    this._history = new History(this._version);
-    this.begin(false);
-    this.immutable = o;
-    this.commit(false);
+    this.fromJS({data: o});
   }
 
   /*********** Data accessors ************/
@@ -39,9 +29,6 @@ const DataStruct = Commitable(class{
     if(!isImmutable(o))
       o = fromJS(o);
     this._immutable = o;
-  }
-  toJSON(){
-    return this.immutable.toJSON();
   }
 
   /***** TRANSACTION SUPPORT ******/
@@ -79,27 +66,36 @@ const DataStruct = Commitable(class{
   }
 
 
-  /* Diff patch and init *
+  /* Diff patch and init */
   toJS(from = this._version){
     const found = this.find(from);
 
-    let data, uuid, changes;
+    let data, uuid, changes, _;
     if(!found){
       throw new Warning('The uuid does not exists in the history');
       [_, {uuid,data}] = this._history.last();
       changes = [];
     }else{
       [_, {uuid,data}] = found;
-      changes = this.changes(uuid, this._version);
+      changes = this.commits(uuid, this._version);
     }
 
     return {
-      data: this.immutable.toJSON(),
+      data: data.toJSON(),
       uuid,
       changes
     }
   }
-*/
+  fromJS({data, uuid}){
+    this._started = false;
+
+    this._version = uuid || uuidv1();
+    this._immutable = undefined;  //so the autocommit would not cause the subscription call
+    this._history = new History(this._version);
+    this.begin(false, uuid);
+    this.immutable = data;
+    this.commit(false);
+  }
 
   /***** Diff and patch support *****/
 
@@ -111,6 +107,7 @@ const DataStruct = Commitable(class{
     let prev_started = this._started;
     this.commit();
     this.begin(true, commit);
+    // TODO: ADD Immutable patch for this baby
     this.commit();
     if(prev_started)
       this.begin();
