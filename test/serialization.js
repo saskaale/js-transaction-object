@@ -22,4 +22,21 @@ describe('serialization', () => {
       assert(data2.a.a1 === 1);
     });
   });
+
+  describe('#transactions', () => {
+    const obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
+    const obj2 = new DataStruct({a:3,b:4});
+    const data = obj.data;
+    const data2 = obj2.data;
+    data.b = 3;
+    obj2.fromJS(obj.toJS());  //so now they are identical
+
+    it('init', () => {
+      assert(obj.transactionUuid === obj2.transactionUuid);
+      assert(data.b === data2.b);
+      assert(data2.b === 3);
+    });
+
+  });
+
 });
