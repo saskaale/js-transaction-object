@@ -5,13 +5,11 @@ import patch from 'immutablepatch';
 import History from './history';
 import dataproxy from './dataproxy';
 import uuidv1 from 'uuid/v1';
+import Commitable from './commitable';
 
-class DataStruct{
+const DataStruct = Commitable(class{
   constructor(o = {}){
     this._data = dataproxy(this, []);
-    this.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.EVERY;
-    this.subscribtions = new Map();
-
     this.replace(o);
   }
   replace(o, version){
@@ -42,15 +40,8 @@ class DataStruct{
       o = fromJS(o);
     this._immutable = o;
   }
-  toJS(){
+  toJSON(){
     return this.immutable.toJSON();
-  }
-  subscribe(cbk){
-    const key = Symbol('subscribtion');
-    this.subscribtions.set(key, cbk);
-
-    const unsubscribe = () => this.subscribtions.delete(key);
-    return unsubscribe;
   }
 
   /***** TRANSACTION SUPPORT ******/
@@ -69,7 +60,7 @@ class DataStruct{
     return this._started;
   }
   begin(user = true, commit = undefined){
-    let last = this._history.last();
+    const [_,last] = this._history.last();
     if(last.data !== this._immutable){
       throw new Error("You cannot call begin() while having already some changes");
     }
@@ -79,14 +70,41 @@ class DataStruct{
     this._started = user;
   }
   rollback(to){
-    let history = this._history.rollback(to);
+    let history = this._history.rollback(to)[1];
     this._version = history.uuid;
     this._immutable = history.data;
   }
   find(commit){
-    this._history.rollback(commit);
+    return this._history.find(commit);
   }
-  diff(from,to){
+
+
+  /* Diff patch and init *
+  toJS(from = this._version){
+    const found = this.find(from);
+
+    let data, uuid, changes;
+    if(!found){
+      throw new Warning('The uuid does not exists in the history');
+      [_, {uuid,data}] = this._history.last();
+      changes = [];
+    }else{
+      [_, {uuid,data}] = found;
+      changes = this.changes(uuid, this._version);
+    }
+
+    return {
+      data: this.immutable.toJSON(),
+      uuid,
+      changes
+    }
+  }
+*/
+
+  /***** Diff and patch support *****/
+
+  // diff between two immutable objects
+  _diff(from,to){
     return diff(from,to);
   }
   patch(diff, commit){
@@ -97,74 +115,7 @@ class DataStruct{
     if(prev_started)
       this.begin();
   }
-  commit(user=true){
-    const oldhistory = this._history.last();
-    if(oldhistory.data !== this._immutable){
-      this._history.onNew(this._version, this._immutable);
-      this._started = false;
-      if(user){
-        let newhistory = this._history.last();
-        let datadiff;
-        this.subscribtions.forEach(subscribtion => {
-          datadiff = datadiff || diff(oldhistory.data, newhistory.data);
-          subscribtion(this._version, datadiff);
-        });
-      }
-    }
-  }
-  /*
-   * get list of commits
-   */
-  commits(fromPos, toPos = this._version){
-    const from = this._history.find(fromPos);
-    const to = this._history.find(toPos);
+});
 
-    if(from && to){
-      const [fromId] = from;
-      const [toId] = from;
-
-      let ret = [];
-      ret.length = toId - fromId;
-      for(let i = fromId; i < toId; i++){
-        const cur = this._history.nth(i);Z
-        const next = this._history.nth(i+1);
-        ret[i - fromId] = {
-          diff: this.diff(cur.data, cur.data),
-          uuid: next.uuid
-        };
-      }
-      return ret;
-    }
-    return [];
-  }
-
-  /*
-   * This function is called every time the user changes the immutable array
-   */
-  _autobegin(){
-    if(!this._started)
-      this.begin(false);
-  }
-  _autocommit(){
-    if(!this._started && this.AUTOCOMMIT_STRATEGY !== DataStruct.AUTOCOMMIT_STRATEGIES.NEVER){
-      if(this.AUTOCOMMIT_STRATEGY === DataStruct.AUTOCOMMIT_STRATEGIES.EVERY){
-        this.commit();
-      }else if(this.AUTOCOMMIT_STRATEGY === DataStruct.AUTOCOMMIT_STRATEGIES.ASYNC){
-        if(!this._commitTimeout){
-          this._commitTimeout = setTimeout(() => {
-            this._commitTimeout = undefined;
-            this.commit();
-          },0)
-        }
-      }
-    }
-  }
-}
-
-DataStruct.AUTOCOMMIT_STRATEGIES = {
-  NEVER: Symbol('never'),
-  ASYNC: Symbol('async'),
-  EVERY: Symbol('every')
-}
-
+DataStruct.AUTOCOMMIT_STRATEGIES = Commitable.AUTOCOMMIT_STRATEGIES;
 export default DataStruct;

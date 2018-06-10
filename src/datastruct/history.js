@@ -4,28 +4,31 @@ import uuidv1 from 'uuid/v1';
 export default class History{
   constructor(uuid){
     const d = {uuid};
-    this._history = new DEQueue([d]);
+    this._queue = new DEQueue([d]);
 
-    ['nth', 'last'].forEach(k =>{
-      this[k] = this._history[k].bind(this._history)
+    ['nth'].forEach(k =>{
+      this[k] = this._queue[k].bind(this._history)
     });
   }
   onNew(uuid, data){
     const d = {uuid,data};
-    this._history.append(d);
-//    this._search.set(uuid,d);
+    this._queue.append(d);
+  }
+  last(){
+    let d = this._queue.last();
+    return [this._queue.length-1, d];
   }
   find(commit){
-    for(const [i, {uuid}] of this._history.beginEnd()){
-      if(uuid === commit){
-        return [i, uuid];
+    for(const [i, d] of this._queue.beginEnd()){
+      if(d.uuid === commit){
+        return [i, d];
       }
     }
   }
   rollback(to){
     if(to){
-      if(to = find(to)){
-        this._history.cutEnd(to[0]);
+      if(to = this.find(to)){
+        this._queue.cutEnd(to[0]);
       }
     }
     return this.last();

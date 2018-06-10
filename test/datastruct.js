@@ -1,5 +1,5 @@
 import assert from 'assert';
-import DataStruct from '../';
+import DataStruct from '../src/datastruct';
 
 describe('DataStruct', () => {
   describe('#initialization', () => {
