@@ -4,17 +4,17 @@
  *    - rollback
  */
 
- const allowedStrategies = {
-   'discard':true,
-   'rollback': true
- }
+const ALLOWED_STRATEGIES = {
+  DISCARD:  Symbol('discard'),
+  ROLLBACK: Symbol('rollback')
+}
 
-export default function(data, sourceid, commit, strategy = 'discard'){
+export default function(data, sourceid, commit, strategy = ALLOWED_STRATEGIES.DISCARD){
     //merges the commit into the data tree
 
-    if(!allowedStrategies){
+    if(!ALLOWED_STRATEGIES.find(e=>e===strategy)){
       throw new Error('strategy has to either of ' +
-          JSON.stringify(Object.keys(allowedStrategies)));
+          JSON.stringify(Object.values(allowedStrategies)));
     }
 
     let is_rollback = sourceid !== data.transactionUuid;
