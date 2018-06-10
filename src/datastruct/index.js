@@ -66,7 +66,7 @@ const DataStruct = Commitable(class{
   }
 
 
-  /* Diff patch and init */
+  /* Serialization */
   toJS(from = this._version){
     const found = this.find(from);
 
