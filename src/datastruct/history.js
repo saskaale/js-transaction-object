@@ -1,5 +1,4 @@
 import DEQueue from './queue';
-import uuidv1 from 'uuid/v1';
 
 export default class History{
   constructor(uuid){
