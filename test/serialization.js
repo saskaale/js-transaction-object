@@ -28,13 +28,29 @@ describe('serialization', () => {
     const obj2 = new DataStruct({a:3,b:4});
     const data = obj.data;
     const data2 = obj2.data;
+    let startuuid = obj.transactionUuid;
     data.b = 3;
-    obj2.fromJS(obj.toJS());  //so now they are identical
 
     it('init', () => {
+      obj2.fromJS(obj.toJS());  //so now they are identical
       assert(obj.transactionUuid === obj2.transactionUuid);
       assert(data.b === data2.b);
       assert(data2.b === 3);
+    });
+
+    it('history', () => {
+      obj2.fromJS(obj.toJS(startuuid));  //so now they are identical
+      assert(obj.transactionUuid === obj2.transactionUuid);
+      assert(data.b === data2.b);
+      assert(data2.b === 3);
+    });
+
+    it('history_rollback', () => {
+      obj2.fromJS(obj.toJS(startuuid));  //so now they are identical
+      obj2.rollback(startuuid);
+      assert(obj2.transactionUuid === startuuid);
+      assert(data.b !== data2.b);
+      assert(data2.b === 2);
     });
 
   });

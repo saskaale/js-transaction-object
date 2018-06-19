@@ -9,7 +9,8 @@ const ALLOWED_STRATEGIES = {
   ROLLBACK: Symbol('rollback')
 }
 
-export default function(data, sourceid, commit, strategy = ALLOWED_STRATEGIES.DISCARD){
+export default function(data, commit, strategy = ALLOWED_STRATEGIES.DISCARD){
+    const {srcuuid} = commit;
     //merges the commit into the data tree
 
     if(!ALLOWED_STRATEGIES.find(e=>e===strategy)){
@@ -17,22 +18,17 @@ export default function(data, sourceid, commit, strategy = ALLOWED_STRATEGIES.DI
           JSON.stringify(Object.values(allowedStrategies)));
     }
 
-    let is_rollback = sourceid !== data.transactionUuid;
-    let commits = data.commits(sourceid, data.transactionUuid);
-    data.rollback(sourceid);
+    let commits = data.commits(srcuuid);
+    data.rollback(srcuuid);
 
     let reapplyChanges = () => {
       //patch the merged commit
-      commits.forEach(({uuid, diff}) => {
-        data.patch(diff, uuid);
-      });
+      commits.forEach(data.patch.bind(data));
     }
-
-    let diff = data.diff(data.immutable, commit.version);
 
     try{
       //patch the merged commit
-      data.patch(diff, commit.uuid);
+      data.patch(commit);
 
       reapplyChanges();
     }catch(e){

@@ -6,7 +6,7 @@ export default class History{
     this._queue = new DEQueue([d]);
 
     ['nth'].forEach(k =>{
-      this[k] = this._queue[k].bind(this._history)
+      this[k] = this._queue[k].bind(this._queue)
     });
   }
   onNew(uuid, data){

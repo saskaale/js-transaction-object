@@ -50,7 +50,7 @@ const Commitable = (parent) => class extends parent{
         const cur = this._history.nth(i);
         const next = this._history.nth(i+1);
         ret[i - fromId] = {
-          diff: this._diff(cur.data, cur.data),
+          diff: this._diff(cur.data, next.data),
           uuid: next.uuid
         };
       }

@@ -86,7 +86,7 @@ const DataStruct = Commitable(class{
       changes
     }
   }
-  fromJS({data, uuid}){
+  fromJS({data, uuid, changes = []}){
     this._started = false;
 
     this._version = uuid || uuidv1();
@@ -95,18 +95,20 @@ const DataStruct = Commitable(class{
     this.begin(false, uuid);
     this.immutable = data;
     this.commit(false);
+    changes.forEach(this.patch.bind(this));
   }
 
   /***** Diff and patch support *****/
 
   // diff between two immutable objects
   _diff(from,to){
-    return diff(from,to);
+    return diff(from,to).toJS();
   }
-  patch(diff, commit){
+  patch({diff, uuid}){
     let prev_started = this._started;
     this.commit();
-    this.begin(true, commit);
+    this.begin(true, uuid);
+    this.immutable = patch(this.immutable, fromJS(diff));
     // TODO: ADD Immutable patch for this baby
     this.commit();
     if(prev_started)
