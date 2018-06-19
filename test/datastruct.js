@@ -96,17 +96,17 @@ describe('DataStruct', () => {
       assert(data.a.a1 === data.b.a1);
     });
 
-
-    const show = false;
     false && it('never_strategy', (done) => {
       let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
       obj.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.NEVER;
       let data = obj.data;
 
       let uuid = obj.transactionUuid;
-      show && console.log(uuid);
+      console.log(uuid);
       data.a = 1;
-      show && console.log(obj.transactionUuid);
+      console.log(obj.transactionUuid);
+
+//      return;
 //      console.log("NEVER1");
       show && console.log();
       show && console.log("CHECK 123 "+([uuid, obj.transactionUuid]));
