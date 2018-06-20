@@ -1,12 +1,12 @@
 const AUTOCOMMIT_STRATEGIES = {
   NEVER: Symbol('never'),
   ASYNC: Symbol('async'),
-  EVERY: Symbol('every')
+  IMMEDIATE: Symbol('immediate')
 };
 
 const Commitable = (parent) => class extends parent{
   get AUTOCOMMIT_STRATEGY(){
-    return this._autocommit_strategy || AUTOCOMMIT_STRATEGIES.EVERY;
+    return this._autocommit_strategy || AUTOCOMMIT_STRATEGIES.IMMEDIATE;
   }
   set AUTOCOMMIT_STRATEGY(s){
     if(!Object.values(AUTOCOMMIT_STRATEGIES).find(e=>e===s)){
@@ -108,7 +108,7 @@ const Commitable = (parent) => class extends parent{
   }
   _autocommit(){
     if(!this._started && this.AUTOCOMMIT_STRATEGY !== Commitable.AUTOCOMMIT_STRATEGIES.NEVER){
-      if(this.AUTOCOMMIT_STRATEGY === Commitable.AUTOCOMMIT_STRATEGIES.EVERY){
+      if(this.AUTOCOMMIT_STRATEGY === Commitable.AUTOCOMMIT_STRATEGIES.IMMEDIATE){
         this.commit();
       }else if(this.AUTOCOMMIT_STRATEGY === Commitable.AUTOCOMMIT_STRATEGIES.ASYNC){
         if(!this._commitTimeout){

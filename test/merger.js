@@ -1,5 +1,6 @@
 import assert from 'assert';
 import DataStruct, {merger} from '../index';
+var expect = require('chai').expect;
 
 describe('merger', () => {
   describe('#initialization', () => {
@@ -10,8 +11,19 @@ describe('merger', () => {
     data.b = 5;
     const jsdump = obj.toJS();
     const reset = (what = obj) => {
+      obj.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.IMMEDIATE;
       what.fromJS(jsdump);
     };
+
+    it('must_commited', () => {
+      obj.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.NEVER;
+      data.b = 8;
+
+      expect(() => {
+        merger(obj, {});
+      }).to.throw();
+    });
+
 
     it('single_commits', () => {
       reset();
