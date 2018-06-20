@@ -20,8 +20,8 @@ const Commitable = (parent) => class extends parent{
   }
   commit(user=true){
     const oldhistory = this._history.last()[1];
-    if(oldhistory.data !== this._immutable){
-      this._history.onNew(this._version, this._immutable);
+    if(oldhistory.data !== this.immutable){
+      this._history.onNew(this._version, this.immutable);
       this._started = false;
       if(user){
         let newhistory = this._history.last()[1];
@@ -78,6 +78,10 @@ const Commitable = (parent) => class extends parent{
     this.commit();
     if(prev_started)
       this.begin();
+  }
+
+  get commited(){
+    return this._history.last()[1].data === this.immutable;
   }
 
   /*

@@ -96,60 +96,57 @@ describe('DataStruct', () => {
       assert(data.a.a1 === data.b.a1);
     });
 
-    false && it('never_strategy', (done) => {
+    it('commited', () => {
       let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
       obj.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.NEVER;
       let data = obj.data;
 
       let uuid = obj.transactionUuid;
-      console.log(uuid);
+
+      assert(obj.commited);
       data.a = 1;
-      console.log(obj.transactionUuid);
-
-//      return;
-//      console.log("NEVER1");
-      show && console.log();
-      show && console.log("CHECK 123 "+([uuid, obj.transactionUuid]));
-
-      let toArr = (s) => {
-        let e = [];
-        for(let i = 0; i < s.length; i++){
-          e.push(s.charCodeAt(i));
-        }
-        return e;
-      }
-
-      show && console.log(toArr(uuid));
-      show && console.log(toArr(obj.transactionUuid));
-
-      assert(uuid == obj.transactionUuid);
-      show && console.log("NEVER2");
       assert(data.a === 1);
-      show && console.log("NEVER3");
+      assert(!obj.commited);
+      obj.commit();
+      assert(obj.commited);
+    });
+
+    it('never_strategy', (done) => {
+      let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
+      obj.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.NEVER;
+      let data = obj.data;
+
+      let uuid = obj.transactionUuid;
+
+      assert(obj.commited);
+      data.a = 1;
+
+      assert(data.a === 1);
+      assert(!obj.commited);
 
       setTimeout(() => {
         assert(data.a === 1);
-        assert(uuid == obj.transactionUuid);
+        assert(!obj.commited);
         obj.commit();
         assert(data.a === 1);
-        assert(uuid != obj.transactionUuid);
+        assert(obj.commited);
         done();
       },50);
     });
 
-    false && it('async_strategy', (done) => {
+    it('async_strategy', (done) => {
       let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
       obj.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.ASYNC;
       let data = obj.data;
 
       let uuid = obj.transactionUuid;
       data.a = 1;
-      assert(uuid == obj.transactionUuid);
+      assert(!obj.commited)
+      assert(data.a === 1);
 
       setTimeout(() => {
         assert(data.a === 1);
-
-        assert(uuid != obj.transactionUuid);
+        assert(obj.commited);
         done();
       },50);
     });
