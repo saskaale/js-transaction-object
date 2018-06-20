@@ -8,6 +8,8 @@ export default class History{
     ['nth'].forEach(k =>{
       this[k] = this._queue[k].bind(this._queue)
     });
+
+    this.LAST_COMMIT = Symbol('last_commit');
   }
   onNew(uuid, data){
     const d = {uuid,data};
@@ -25,9 +27,11 @@ export default class History{
     }
   }
   rollback(to){
-    if(to){
+    if(to !== this.LAST_COMMIT){
       if(to = this.find(to)){
         this._queue.cutEnd(to[0]);
+      }else{
+        throw new Error('Rollback commit does not found')
       }
     }
     return this.last();

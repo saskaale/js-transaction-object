@@ -67,7 +67,7 @@ const DataStruct = Commitable(Exportable(class{
     }
     this._started = user;
   }
-  rollback(to){
+  rollback(to = this._history.LAST_COMMIT){
     let history = this._history.rollback(to)[1];
     this._version = history.uuid;
     this._immutable = history.data;

@@ -153,7 +153,6 @@ describe('DataStruct', () => {
         done();
       },50);
     });
-
   });
 
   describe('#subscribtions', () => {
