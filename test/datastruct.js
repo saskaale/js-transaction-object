@@ -1,5 +1,6 @@
 import assert from 'assert';
 import DataStruct from '../src/datastruct';
+var expect = require('chai').expect;
 
 describe('DataStruct', () => {
   describe('#initialization', () => {
@@ -155,5 +156,22 @@ describe('DataStruct', () => {
 
   });
 
+  describe('#subscribtions', () => {
+    let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
+    let data = obj.data;
+    const startuuid = obj.transactionUuid;
+
+    let mychanges = [];
+    obj.subscribe((e)=>mychanges.push(e));
+
+    data.b = 3;
+    data.b = 4;
+
+    assert(mychanges.length === 2);
+    const objdump = obj.toJS(startuuid);
+    console.log(objdump.changes);
+    console.log(mychanges);
+//    expect(objdump.changes).to.deep.equal(mychanges);
+  });
 
 });

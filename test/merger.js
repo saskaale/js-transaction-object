@@ -59,5 +59,37 @@ describe('merger', () => {
       assert(obj2.transactionUuid === lasttransactionuuid);
     });
 
+    it('commit_insert', () => {
+      reset();
+      let obj2 = new DataStruct();
+      let data2 = obj2.data;
+      let startuuid = obj.transactionUuid;
+      reset(obj2);
+      data.b = 6;
+      data.b = 7;
+      data2.c = -1;
+
+      const lasttransactionuuid = obj2.transactionUuid;
+      const changes = obj.toJS(startuuid).changes;
+      const last2_commit = changes[changes.length-2];
+      merger(obj2, last2_commit);
+      assert(data2.b === 6);
+      assert(data2.c === -1);
+      assert(obj2.transactionUuid === lasttransactionuuid);
+    });
+
+    it('commit_insert', () => {
+      reset();
+      let obj2 = new DataStruct();
+      let data2 = obj2.data;
+      let startuuid = obj.transactionUuid;
+      reset(obj2);
+      data.b = 6;
+      data.b = 7;
+      data2.c = -1;
+
+
+    });
+
   });
 });

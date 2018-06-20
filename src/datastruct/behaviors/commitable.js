@@ -24,13 +24,20 @@ const Commitable = (parent) => class extends parent{
       this._history.onNew(this._version, this.immutable);
       this._started = false;
       if(user){
-        let newhistory = this._history.last()[1];
+        const newhistory = this._history.last()[1];
         let datadiff;
         this.subscribtions.forEach(subscribtion => {
-          datadiff = datadiff || diff(oldhistory.data, newhistory.data);
+          datadiff = datadiff || this._commitMsg(oldhistory, newhistory);
           subscribtion(this._version, datadiff);
         });
       }
+    }
+  }
+  _commitMsg(cur, next){
+    return {
+      diff: this._diff(cur.data, next.data),
+      uuid: next.uuid,
+      srcuuid: cur.uuid
     }
   }
   /*
@@ -49,16 +56,23 @@ const Commitable = (parent) => class extends parent{
       for(let i = fromId; i < toId; i++){
         const cur = this._history.nth(i);
         const next = this._history.nth(i+1);
-        ret[i - fromId] = {
-          diff: this._diff(cur.data, next.data),
-          uuid: next.uuid,
-          srcuuid: cur.uuid
-        };
+        ret[i - fromId] = this._commitMsg(cur, next);
       }
       return ret;
     }
     return [];
   }
+  /*
+   * Groupped commits according to the groups
+   */
+  diffCommits(from,to){
+    from = this._history.find(from);
+    to = this._history.find(to);
+    if(!from || !to)
+      throw new Error('not able to find from or to commit');
+    return this._commitMsg(from, to);
+  }
+
 
   subscribe(cbk){
     const key = Symbol('subscribtion');
