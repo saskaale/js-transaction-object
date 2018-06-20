@@ -169,9 +169,7 @@ describe('DataStruct', () => {
 
     assert(mychanges.length === 2);
     const objdump = obj.toJS(startuuid);
-    console.log(objdump.changes);
-    console.log(mychanges);
-//    expect(objdump.changes).to.deep.equal(mychanges);
+    expect(objdump.changes).to.deep.equal(mychanges);
   });
 
 });

@@ -28,7 +28,7 @@ const Commitable = (parent) => class extends parent{
         let datadiff;
         this.subscribtions.forEach(subscribtion => {
           datadiff = datadiff || this._commitMsg(oldhistory, newhistory);
-          subscribtion(this._version, datadiff);
+          subscribtion(datadiff);
         });
       }
     }
