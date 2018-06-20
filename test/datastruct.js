@@ -110,7 +110,9 @@ describe('DataStruct', () => {
       obj.commit();
       assert(obj.commited);
     });
+  });
 
+  describe('#commit_strategies', () => {
     it('never_strategy', (done) => {
       let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
       obj.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.NEVER;

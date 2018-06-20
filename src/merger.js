@@ -13,7 +13,7 @@ export default function(data, commit, strategy = ALLOWED_STRATEGIES.DISCARD){
     const {srcuuid} = commit;
     //merges the commit into the data tree
 
-    if(!ALLOWED_STRATEGIES.find(e=>e===strategy)){
+    if(!Object.values(ALLOWED_STRATEGIES).find(e=>e===strategy)){
       throw new Error('strategy has to either of ' +
           JSON.stringify(Object.values(allowedStrategies)));
     }
