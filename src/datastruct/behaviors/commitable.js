@@ -65,7 +65,7 @@ const Commitable = (parent) => class extends parent{
   /*
    * Groupped commits according to the groups
    */
-  diffCommits(from,to){
+  diffCommits(from,to = this._version){
     from = this._history.find(from);
     to = this._history.find(to);
     if(!from || !to)

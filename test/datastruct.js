@@ -88,6 +88,16 @@ describe('DataStruct', () => {
       assert(data.a.a1 == 1);
     });
 
+    it('rollback_to_nonpecified', () => {
+      let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
+      let data = obj.data;
+      data.b = 3;
+
+      expect(() => {
+        obj.rollback("13123bcsasdas");  //some most likely never shit
+      }).to.throw();
+    });
+
     it('setting_of_object', () => {
       let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
       let data = obj.data;

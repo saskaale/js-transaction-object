@@ -20,15 +20,17 @@ export default function(data, commit, strategy = ALLOWED_STRATEGIES.DISCARD){
 
     let enduuid = data.uuid;
     let commits = data.commits(srcuuid);
+
+    let olddiff;
+    if(!(strategy & ALLOWED_STRATEGIES.ALLOW_CONFLICT)){
+      olddiff = data.diffCommits(srcuuid);
+    }
+
+    //this would throw error in case commit not found
     data.rollback(srcuuid);
 
-/*    let alldiff;
-    if(!(strategy & ALLOWED_STRATEGIES.ALLOW_CONFLICT)){
-      alldiff = data.diffCommits(data);
-    }
-*/
     let reapplyChanges = () => {
-      //patch the merged commit
+      //patch the merged` commit
       commits.forEach(data.patch.bind(data));
     }
 
@@ -39,13 +41,21 @@ export default function(data, commit, strategy = ALLOWED_STRATEGIES.DISCARD){
       reapplyChanges();
 
       if(!(strategy & ALLOWED_STRATEGIES.ALLOW_CONFLICT)){
-        if(false)
-        throw new Error("DATA CONFLICT error");
+        let newdiff = data.diffCommits(srcuuid);
+        console.log("OLDDIFF vs NEWDIFF");
+        console.log(olddiff);
+        console.log(newdiff);
+        if(false){
+
+          throw new Error("DATA CONFLICT error");
+        }
       }
     }catch(e){
       if(strategy & ALLOWED_STRATEGIES.ROLLBACK){
+        //ROLLBACK
         data.rollback();
       }else{
+        //REVERT
         data.rollback(srcuuid);
         reapplyChanges();
       }
