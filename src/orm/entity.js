@@ -7,6 +7,7 @@ export default class Entity{
   static init(db, entity, properties = {}, navigation = {}){
     entity.prototype._propDef = extend({}, properties, defaultProperties);
     entity.prototype._navDef = extend({}, navigation);
+    entity.prototype._db = db;
   }
 
   deleteRef(k, entity){
@@ -40,12 +41,12 @@ export default class Entity{
               throw new Error("db "+db.className+": "+entity.className+"["+k+"] can be only intanceof "+property.type);
           }
           this._data[k+'Id'] = v.uuid;
+          this._ref[k] = v;
           v.addRef(property.ref, this);
           return true;
         },
         get: function(){
-          let entityId = this._data[k+'Id'];
-          return db[property.type][entityId];
+          return this._ref[k];
         }
       };
     };
@@ -83,9 +84,9 @@ export default class Entity{
     defaultKey(entity.prototype._navDef, 'source', 'uuid');
     TinySeq(entity.prototype._navDef).forEach((property, k) => {
       Object.defineProperty(entity.prototype,
-        property,
+        k,
         {
-          get: function(){return this._navigation[k] || {};},
+          get: function(){return this._navigation[k];},
           enumerable: () => true ,
           set: function(v){
             this.addRef(k, v);
@@ -96,6 +97,7 @@ export default class Entity{
   }
 
   constructor(data = {}){
+    this._ref = {};
     this._data = {};
     this._navigation = TinySeq(this._navDef).map(_=>({})).toObject();
     this._create(data);
@@ -105,8 +107,8 @@ export default class Entity{
     return uuidv1();
   }
 
-  _delete(){
-
+  delete(){
+    this._db._delete(this);
   }
 
   _update(data){
@@ -117,6 +119,7 @@ export default class Entity{
   _create(data){
     data.uuid = data.uuid || this._newUuid();
     this._update(data);
+    this._db._add(this);
   }
 
 };

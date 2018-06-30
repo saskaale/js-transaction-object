@@ -2,15 +2,25 @@ import {TinySeq} from '../utils';
 import Entity from './entity';
 
 export default class Database{
-  constructor(){
+  constructor(datastruct = {}){
+    this._datastruct = datastruct;
     this.Entities = {};
   }
 
-  add(entity){
-    this[entity.className][entity.id] = entity;
+  _add(entity){
+    this[entity.className][entity.uuid] = entity;
+  }
+
+  _delete(entity){
+    delete this[entity.className][entity.uuid];
   }
 
   build(){
+    TinySeq(this.Entities).forEach((Entity) => {
+      if(this._datastruct[Entity] === undefined)
+        this._datastruct[Entity] = {};
+    });
+
     TinySeq(this.Entities).forEach((Entity) => Entity.build(Entity, this));
   }
 
