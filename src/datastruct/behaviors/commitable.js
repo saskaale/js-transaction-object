@@ -70,7 +70,7 @@ const Commitable = (parent) => class extends parent{
     to = this._history.find(to);
     if(!from || !to)
       throw new Error('not able to find from or to commit');
-    return this._commitMsg(from, to);
+    return this._commitMsg(from[1], to[1]);
   }
 
 

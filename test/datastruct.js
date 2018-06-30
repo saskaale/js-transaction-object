@@ -48,7 +48,6 @@ describe('DataStruct', () => {
       let version = obj.data;
 
       let initTransactionId = obj.transactionUuid;
-      //AUTOCOMMIT_STRATEGY
       data.a = 1;
       obj.rollback();
 
