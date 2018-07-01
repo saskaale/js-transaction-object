@@ -118,6 +118,7 @@ export default class Entity{
 
   _create(data){
     data.uuid = data.uuid || this._newUuid();
+    this._data = this._db._createData(this.className, data.uuid, data.uuid);
     this._update(data);
     this._db._add(this);
   }

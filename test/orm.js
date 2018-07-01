@@ -5,9 +5,9 @@ var expect = require('chai').expect;
 import {createDatabase, createEntity, Entity, Database} from '../src/orm';
 
 describe('ORM', () => {
-  const initDb = () => {
+  const initDb = (...args) => {
     const MyDb = createDatabase('MyDb');
-    const db = new MyDb();
+    const db = new MyDb(...args);
     const Task = createEntity('Task', db, {name: null, description: null}, {subtasks: null, subsubtasks: null});
     const SubTask = createEntity('SubTask', db, {task: {type:'Task', ref: 'subtasks'}, name: null, description: null}, {subsubtasks: null});
     const SubSubTask = createEntity('SubSubTask', db, {subtask: {type:'SubTask', ref: 'subsubtasks'}, name: null});
@@ -65,6 +65,48 @@ describe('ORM', () => {
   describe('#datastruct', () => {
     const datastruct = new DataStruct();
     const {db, Task, SubSubTask, SubTask} = initDb(datastruct);
+
+    const task1 = new Task({name: 'task1'});
+    const task2 = new Task({name: 'task2'});
+    const subtask1 = new SubTask({name: 'subtask1', task: task1});
+    const subtask2 = new SubTask({name: 'subtask2', task: task1});
+    const subtask3 = new SubTask({name: 'subtask3', task: task1});
+/*    const subsubtask2_1 = new SubSubTask({name: 'subsubtask2_1', subtask: subtask2});
+    const subsubtask2_2 = new SubSubTask({name: 'subsubtask2_2', subtask: subtask2});
+    const subsubtask1_1 = new SubSubTask({name: 'subsubtask1_1', subtask: subtask1});
+*/
+    expect(datastruct.immutable.toJS()).to.deep.equal({
+      'Task': {
+        [task1.uuid]:{
+          uuid: task1.uuid,
+          name: 'task1'
+        },
+        [task2.uuid]:{
+          uuid: task2.uuid,
+          name: 'task2'
+        },
+      },
+      'SubTask':{
+        [subtask1.uuid]:{
+          uuid: subtask1.uuid,
+          taskId: task1.uuid,
+          name: 'subtask1'
+        },
+        [subtask2.uuid]:{
+          uuid: subtask2.uuid,
+          taskId: task1.uuid,
+          name: 'subtask2'
+        },
+        [subtask3.uuid]:{
+          uuid: subtask3.uuid,
+          taskId: task1.uuid,
+          name: 'subtask3'
+        }
+      },
+      'SubSubTask':{
+      }
+    });
+
   });
 
 });
