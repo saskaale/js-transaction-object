@@ -23,7 +23,7 @@ export default class Entity{
   }
 
   static build(entity, db){
-    let beforeSet = function({update}, k, v){
+    const beforeSet = function({update}, k, v){
       let oldVal = this[k];
       if(v !== oldVal && oldVal !== undefined && update){
         v = update(this,v);
@@ -31,7 +31,7 @@ export default class Entity{
       return v;
     }
 
-    let buildReference = (property, k) => ({
+    const buildReference = (property, k) => ({
       set: function(v){
         v = beforeSet.call(this, property, k, v);
         if(this[k] && (this[k] instanceof Entity)){
@@ -51,7 +51,7 @@ export default class Entity{
       }
     });
 
-    let buildProperty = (property, k) => ({
+    const buildProperty = (property, k) => ({
       set: function(v){
         v = beforeSet.call(this, property, k, v);
         this._data[k] = v;
@@ -77,7 +77,7 @@ export default class Entity{
           k,
           {
             get,
-            enumerable: () => true ,
+            enumerable: () => true,
             configurable: true,
             set,
           });
