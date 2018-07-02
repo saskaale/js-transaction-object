@@ -1,5 +1,5 @@
-import assert from 'assert';
 import DataStruct from '../index';
+import { assert } from 'chai';
 
 describe('serialization', () => {
   describe('#basic', () => {

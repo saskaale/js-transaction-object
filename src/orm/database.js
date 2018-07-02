@@ -20,6 +20,7 @@ export default class Database{
 
   _delete(entity){
     delete this[entity.className][entity.uuid];
+    delete this._data[entity.className][entity.uuid];
   }
 
   build(){

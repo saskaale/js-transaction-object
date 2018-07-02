@@ -1,6 +1,5 @@
-import assert from 'assert';
 import DataStruct from '../src/datastruct';
-var expect = require('chai').expect;
+import { assert, expect } from 'chai';
 
 describe('DataStruct', () => {
   describe('#initialization', () => {

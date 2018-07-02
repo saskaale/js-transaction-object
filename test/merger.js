@@ -1,6 +1,5 @@
-import assert from 'assert';
 import DataStruct, {merger} from '../index';
-var expect = require('chai').expect;
+import { assert, expect } from 'chai';
 
 describe('merger', () => {
   describe('#initialization', () => {
@@ -99,8 +98,6 @@ describe('merger', () => {
       data.b = 6;
       data.b = 7;
       data2.c = -1;
-
-
     });
 
   });

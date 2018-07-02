@@ -3,6 +3,8 @@ import uuidv1 from 'uuid/v1';
 
 const defaultProperties = {uuid: {update: () => {throw new Error("You cannot set id on entity");}}};
 
+const deletedGetSet = () => {throw new Error('This object was deleted')};
+
 export default class Entity{
   static init(db, entity, properties = {}, navigation = {}){
     entity.prototype._propDef = extend({}, properties, defaultProperties);
@@ -75,6 +77,7 @@ export default class Entity{
           {
             get,
             enumerable: () => true ,
+            configurable: true,
             set,
           });
     });
@@ -88,6 +91,7 @@ export default class Entity{
         {
           get: function(){return this._navigation[k];},
           enumerable: () => true ,
+          configurable: true,
           set: function(v){
             this.addRef(k, v);
             return true;
@@ -109,6 +113,19 @@ export default class Entity{
 
   delete(){
     this._db._delete(this);
+
+    //TODO: refractor this - can cause potential performance issues
+    const deleteProperty = (_, k) => {
+      Object.defineProperty(this,
+        k,
+        {
+          get: deletedGetSet,
+          set: deletedGetSet,
+          enumerable: () => true ,
+        });
+    };
+    TinySeq(this._navDef).forEach(deleteProperty);
+    TinySeq(this._propDef).forEach(deleteProperty);
   }
 
   _update(data){
@@ -125,8 +142,12 @@ export default class Entity{
 
 };
 
-let createEntity = (name, db, properties = {}, navigation = {}) => {
-  let cl = class extends Entity{};
+let createEntity = (name, db, properties = {}, navigation = {}, cl = undefined) => {
+  if(cl === undefined)
+    cl = class extends Entity{};
+  if(!cl.prototype instanceof Entity){
+    throw new Error("class must inherits the Entity");
+  }
   cl.prototype.className = name;
   db.initEntity(cl, properties, navigation);
   return cl;
