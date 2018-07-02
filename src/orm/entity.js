@@ -31,46 +31,47 @@ export default class Entity{
       return v;
     }
 
-    let buildReference = (property, k) => {
-      return {
-        set: function(v){
-          v = beforeSet.call(this, property, k, v);
-          if(this[k] && (this[k] instanceof Entity)){
-            this[k].deleteRef(k, this);
-          }
-          if(v !== undefined){
-            if(property.type && !(v instanceof db.Entities[property.type]))
-              throw new Error("db "+db.className+": "+entity.className+"["+k+"] can be only intanceof "+property.type);
-          }
-          this._data[k+'Id'] = v.uuid;
-          this._ref[k] = v;
-          v.addRef(property.ref, this);
-          return true;
-        },
-        get: function(){
-          return this._ref[k];
+    let buildReference = (property, k) => ({
+      set: function(v){
+        v = beforeSet.call(this, property, k, v);
+        if(this[k] && (this[k] instanceof Entity)){
+          this[k].deleteRef(k, this);
         }
-      };
-    };
+        if(v !== undefined){
+          if(property.type && !(v instanceof db.Entities[property.type]))
+            throw new Error("db "+db.className+": "+entity.className+"["+k+"] can be only intanceof "+property.type);
+        }
+        this._data[k+'Id'] = v.uuid;
+        this._ref[k] = v;
+        v.addRef(property.ref, this);
+        return true;
+      },
+      get: function(){
+        return this._ref[k];
+      }
+    });
+
+    let buildProperty = (property, k) => ({
+      set: function(v){
+        v = beforeSet.call(this, property, k, v);
+        this._data[k] = v;
+        return true;
+      },
+      get: function(){
+        return this._data[k];
+      }
+    });
 
     entity.prototype._propDef = enchanceKey(entity.prototype._propDef);
     TinySeq(entity.prototype._propDef).forEach((property, k) => {
-        let set, get;
+        let ref;
         if(property.ref){
           property.ref = property.ref || {};
-          const ref = buildReference(property, k);
-          set = ref.set;
-          get = ref.get;
+          ref = buildReference(property, k);
         }else{
-          set = function(v){
-            v = beforeSet.call(this, property, k, v);
-            this._data[k] = v;
-            return true;
-          };
-          get = function(){
-            return this._data[k];
-          };
+          ref = buildProperty(property, k);
         }
+        const {set, get} = ref;
 
         Object.defineProperty(entity.prototype,
           k,
