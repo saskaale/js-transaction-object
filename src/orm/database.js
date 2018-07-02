@@ -1,8 +1,12 @@
 import {TinySeq} from '../utils';
 import Entity from './entity';
 
+let defaultDatastruct;
+let batch = (f) => f(defaultDatastruct);
+defaultDatastruct = {data:{}, batch};
+
 export default class Database{
-  constructor(datastruct = {data:{}}){
+  constructor(datastruct = defaultDatastruct){
     this._datastruct = datastruct;
     this._data = datastruct.data;
     this.Entities = {};

@@ -114,7 +114,11 @@ export default class Entity{
   delete(){
     this._db._delete(this);
 
-    //TODO: refractor this - can cause potential performance issues
+    /*
+      TODO: refractor this
+        - create a lot of GC garbage
+        - can cause potential performance issues
+    */
     const deleteProperty = (_, k) => {
       Object.defineProperty(this,
         k,

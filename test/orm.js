@@ -2,6 +2,7 @@ import { assert, expect } from 'chai';
 
 import DataStruct from '../src/datastruct';
 import {createDatabase, createEntity, Entity, Database} from '../src/orm';
+import {TinySeq} from '../src/utils';
 
 describe('ORM', () => {
   const initDb = (datastruct, entities = {}) => {
@@ -214,11 +215,11 @@ describe('ORM', () => {
     const subtask3 = new SubTask({name: 'subtask3', task: task1, priority: 3});
     const subtask2_1 = new SubTask({name: 'subtask2_1', task: task2, priority: 1});
 
-    it('className', () => () => {
+    it('className', () => {
       expect(Task.prototype.className).to.eq('Task');
     });
 
-    it('userMethod', () => () => {
+    it('userMethod', () => {
       expect(task1.important).to.deep.equal({
         [subtask2.uuid]: subtask2,
         [subtask3.uuid]: subtask3
