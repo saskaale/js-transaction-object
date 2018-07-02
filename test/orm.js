@@ -4,12 +4,32 @@ import DataStruct from '../src/datastruct';
 import {createDatabase, createEntity, Entity, Database} from '../src/orm';
 
 describe('ORM', () => {
-  const initDb = (...args) => {
+  const initDb = (datastruct, entities = {}) => {
     const MyDb = createDatabase('MyDb');
-    const db = new MyDb(...args);
-    const Task = createEntity('Task', db, {name: null, description: null}, {subtasks: null, subsubtasks: null});
-    const SubTask = createEntity('SubTask', db, {task: {type:'Task', ref: 'subtasks'}, name: null, description: null}, {subsubtasks: null});
-    const SubSubTask = createEntity('SubSubTask', db, {subtask: {type:'SubTask', ref: 'subsubtasks'}, name: null});
+    const db = new MyDb(datastruct);
+    const Task = createEntity('Task', db, {
+                  name: null,
+                  description: null
+                }, {
+                  subtasks: null,
+                  subsubtasks: null
+                },
+                entities.Task);
+    const SubTask = createEntity('SubTask', db, {
+                  task: {type:'Task', ref: 'subtasks'},
+                  name: null,
+                  description: null,
+                  priority: null
+                }, {
+                  subsubtasks: null
+                },
+                entities.SubTask);
+    const SubSubTask = createEntity('SubSubTask', db, {
+                  subtask: {type:'SubTask', ref: 'subsubtasks'},
+                  name: null
+                },
+                {},
+                entities.SubSubTask);
     db.build();
     return {db, Task, SubTask, SubSubTask, MyDb};
   }
@@ -114,7 +134,6 @@ describe('ORM', () => {
     const subtask3 = new SubTask({name: 'subtask3', task: task1});
 
     it('test', () => {
-
       expect(datastruct.immutable.toJS()).to.deep.equal({
         'Task': {
           [task1.uuid]:{
@@ -163,17 +182,49 @@ describe('ORM', () => {
     const task1 = new Task({name: 'task1'});
     const task2 = new Task({name: 'task2'});
 
-    const getName = (el) => (() => el.name);
 
-    expect(getName(task1)).to.not.throw();
-    expect(getName(task2)).to.not.throw();
+    it('test', () => {
+      const getName = (el) => (() => el.name);
 
-    task1.delete();
+      expect(getName(task1)).to.not.throw();
+      expect(getName(task2)).to.not.throw();
 
-    expect(getName(task1)).to.throw();
-    expect(getName(task2)).to.not.throw();
+      task1.delete();
 
+      expect(getName(task1)).to.throw();
+      expect(getName(task2)).to.not.throw();
+    });
+  });
 
+  describe('#custom_class', () => {
+    class myTask extends Entity{
+      constructor(...args){
+        super(...args);
+      }
+      get important(){
+        return TinySeq(this.subtasks).filter(e=>e.priority > 1).toObject();
+      }
+    };
+
+    const {db, Task, SubTask} = initDb(undefined, {Task: myTask});
+    const task1 = new Task({name: 'task1'});
+    const task2 = new Task({name: 'task2'});
+    const subtask1 = new SubTask({name: 'subtask1', task: task1, priority: 1});
+    const subtask2 = new SubTask({name: 'subtask2', task: task1, priority: 2});
+    const subtask3 = new SubTask({name: 'subtask3', task: task1, priority: 3});
+    const subtask2_1 = new SubTask({name: 'subtask2_1', task: task2, priority: 1});
+
+    it('className', () => () => {
+      expect(Task.prototype.className).to.eq('Task');
+    });
+
+    it('userMethod', () => () => {
+      expect(task1.important).to.deep.equal({
+        [subtask2.uuid]: subtask2,
+        [subtask3.uuid]: subtask3
+      })
+      expect(Task.prototype.className).to.eq('Task');
+    });
   });
 
 });
