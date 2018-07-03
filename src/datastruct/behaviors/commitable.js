@@ -23,11 +23,10 @@ const Commitable = (parent) => class extends parent{
     if(oldhistory.data !== this.immutable){
       this._history.onNew(this._version, this.immutable);
       this._started = false;
-      if(user){
+      if(user && this.subscribtions.size){
         const newhistory = this._history.last()[1];
-        let datadiff;
+        const datadiff = this._commitMsg(oldhistory, newhistory);
         this.subscribtions.forEach(subscribtion => {
-          datadiff = datadiff || this._commitMsg(oldhistory, newhistory);
           subscribtion(datadiff);
         });
       }

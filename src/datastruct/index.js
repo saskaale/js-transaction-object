@@ -59,13 +59,12 @@ const DataStruct = Commitable(Exportable(class{
   }
   begin(user = true, commit = undefined){
     const [_,last] = this._history.last();
-    if(last.data !== this._immutable){
-      throw new Error("You cannot call begin() while having already some changes");
+    if(last.data === this._immutable){
+      if(this._version === last.uuid){
+        this._version = commit || this.newUuid();
+      }
+      this._started = user;
     }
-    if(this._version === last.uuid){
-      this._version = commit || this.newUuid();
-    }
-    this._started = user;
   }
   rollback(to = this._history.LAST_COMMIT){
     let history = this._history.rollback(to)[1];

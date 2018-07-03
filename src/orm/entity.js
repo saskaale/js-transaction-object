@@ -23,13 +23,24 @@ export default class Entity{
   }
 
   static build(entity, db){
+    const initProperty = ({set, get}, k) => {
+      Object.defineProperty(entity.prototype,
+        k,
+        {
+          get,
+          enumerable: () => true,
+          configurable: true,
+          set,
+        });
+    };
+
     const beforeSet = function({update}, k, v){
       let oldVal = this[k];
       if(v !== oldVal && oldVal !== undefined && update){
         v = update(this,v);
       }
       return v;
-    }
+    };
 
     const buildReference = (property, k) => ({
       set: function(v){
@@ -62,42 +73,36 @@ export default class Entity{
       }
     });
 
+    /*
+     * Build property descriptors
+     */
     entity.prototype._propDef = enchanceKey(entity.prototype._propDef);
-    TinySeq(entity.prototype._propDef).forEach((property, k) => {
-        let ref;
-        if(property.ref){
-          property.ref = property.ref || {};
-          ref = buildReference(property, k);
-        }else{
-          ref = buildProperty(property, k);
-        }
-        const {set, get} = ref;
-
-        Object.defineProperty(entity.prototype,
-          k,
-          {
-            get,
-            enumerable: () => true,
-            configurable: true,
-            set,
-          });
-    });
+    //properties which are references
+    entity.prototype._refPropDef = TinySeq(entity.prototype._propDef)
+      .filter(({ref})=>ref).toObject();
+    //properties which are regular values
+    entity.prototype._regPropDef = TinySeq(entity.prototype._propDef)
+        .filter(({ref})=>!ref).toObject();
+    //init the property descriptors
+    TinySeq(entity.prototype._refPropDef)
+      .forEach((p, k) => initProperty(buildReference(p,k), k));
+    TinySeq(entity.prototype._regPropDef)
+      .forEach((p, k) => initProperty(buildProperty(p,k), k));
 
 
+    /*
+     * Build navigation property descriptors
+     */
     entity.prototype._navDef = enchanceKey(entity.prototype._navDef, 'nullable');
     defaultKey(entity.prototype._navDef, 'source', 'uuid');
-    TinySeq(entity.prototype._navDef).forEach((property, k) => {
-      Object.defineProperty(entity.prototype,
-        k,
-        {
-          get: function(){return this._navigation[k];},
-          enumerable: () => true ,
-          configurable: true,
-          set: function(v){
-            this.addRef(k, v);
-            return true;
-          }
-        });
+    TinySeq(entity.prototype._navDef).forEach((_, k) => {
+      initProperty({
+        get: function(){return this._navigation[k];},
+        set: function(v){
+          this.addRef(k, v);
+          return true;
+        }
+      }, k);
     });
   }
 
@@ -144,7 +149,6 @@ export default class Entity{
     this._update(data);
     this._db._add(this);
   }
-
 };
 
 let createEntity = (name, db, properties = {}, navigation = {}, cl = undefined) => {
