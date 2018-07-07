@@ -3,7 +3,7 @@ import uuidv1 from 'uuid/v1';
 
 const defaultProperties = {uuid: {update: () => {throw new Error("You cannot set id on entity");}}};
 
-const deletedGetSet = () => {throw new Error('This object was deleted')};
+const deletedGetSet = () => {debugger; throw new Error('This object was deleted')};
 
 export default class Entity{
   static init(db, entity, properties = {}, navigation = {}){
@@ -118,6 +118,7 @@ export default class Entity{
   }
 
   delete(){
+    debugger;
     this._db._delete(this);
 
     /*

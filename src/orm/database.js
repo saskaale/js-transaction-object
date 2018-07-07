@@ -1,40 +1,11 @@
 import {TinySeq} from '../utils';
+import ListenDatastruct from './behaviors/listenDatastruct';
 import Entity from './entity';
-import DataStruct from '../datastruct';
 
-let defaultDatastruct;
-let batch = (f) => f(defaultDatastruct);
-defaultDatastruct = {
-      data:{},
-      batch,
-      begin(){},
-      commit(){},
-      subscribe(){ return () => {}; }
-};
-
-export default class Database{
-  constructor(datastruct = defaultDatastruct){
-    datastruct.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.ASYNC;
-    datastruct.subscribe(this._listenDataChange);
-
-    this._datastruct = datastruct;
-
-    this._data = datastruct.data;
+const Database =  ListenDatastruct(class{
+  constructor(){
     this.Entities = {};
-  }
-
-  _listenDataChange({diff}){
-    console.log('listenTo ');
-    console.log(diff);
-    diff.forEach(({op, path, value}) => {
-      switch(op){
-        case 'add':
-          break;
-        case 'delete':
-          break;
-      }
-//      path = path.substring(1).split('/');
-    })
+    this._data = {};
   }
 
   _createData(Entity, uuid){
@@ -67,7 +38,9 @@ export default class Database{
 
     Entity.init(this, entity, ...args);
   }
-}
+});
+
+export default Database;
 
 const createDatabase = (name) => {
     const cl = class extends Database{};
