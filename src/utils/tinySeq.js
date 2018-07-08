@@ -61,9 +61,9 @@ function TinySeq(_d){
   }
 
   const toArray = () => {
-    if(isArray()){
+    if(_isArray()){
       return _d;
-    }else if(isObject()){
+    }else if(_isObject()){
       return Object.values(_d);
     }
     throw new Error('Unreachable');
@@ -109,6 +109,8 @@ function TinySeq(_d){
   return {
     toKeyed,
     toIndexed,
+    isIndexed,
+    isKeyed,
     forEach,
     first,
     map,
