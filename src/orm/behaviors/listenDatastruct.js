@@ -22,14 +22,16 @@ export default (parent) => class extends parent{
       this._data = datastruct.data;
   }
   _listenDataChange({diff}){
-    console.log(diff);
-    
     const doRemove = (path, addStep = 0) => {
       if(addStep <= 0){
-        if(path.length > 2){
-          delete this._data[path[0]][path[1]][path[2]];
-        }else if(path.length > 1){
-          this[path[0]][path[1]].delete();
+        if(path.length > 1){
+          const entity = this[path[0]][path[1]];
+          if(entity){
+            if(path.length > 2)
+              delete entity[path[2]];
+            else
+              entity.delete();
+          }
         }else{
           TinySeq(this[path[0]]).forEach(e=>e.delete());
         }

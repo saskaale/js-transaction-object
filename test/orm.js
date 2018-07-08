@@ -32,8 +32,48 @@ describe('ORM', () => {
                 {},
                 entities.SubSubTask);
     db.build();
+
     return {db, Task, SubTask, SubSubTask, MyDb};
   }
+
+  const initSyncThroughDataStruct = () => {
+    const ds = new DataStruct();
+    const {db: dbemitter, Task, SubTask, SubSubTask} = initDb(ds);
+    const {db: dblistener} = initDb(ds);
+
+    const objTo = (el) => {
+      const mapValue = (value) =>
+        (value && value instanceof Entity) ? value.uuid : value;
+
+      return TinySeq(el.Entities).map((e, k) => 
+        TinySeq(el[k]).map(e=>
+          TinySeq(e._propDef).map((_,k) => 
+            mapValue(e[k])
+          ).toObject()
+        ).toObject()
+      ).toObject();
+    }
+
+    const test = (msg) => {
+      it(msg, () => {
+        let oemitter = objTo(dbemitter);
+        let oelistener = objTo(dblistener);
+
+        expect(oemitter).to.deep.equal(oelistener);
+      });
+    }
+
+    return {
+      dbemitter, 
+      dblistener, 
+      commit: ds.commit.bind(ds), 
+      test,
+      Task, 
+      SubTask, 
+      SubSubTask 
+    };
+  }
+
 
   describe('#basic', () => {
     const {db, Task, SubTask} = initDb();
@@ -223,9 +263,32 @@ describe('ORM', () => {
       expect(task1.important).to.deep.equal({
         [subtask2.uuid]: subtask2,
         [subtask3.uuid]: subtask3
-      })
+      });
       expect(Task.prototype.className).to.eq('Task');
     });
   });
+
+  describe("#sync_through_ds", () => {
+    const {
+      commit, 
+      test,
+      Task, 
+      SubTask, 
+      SubSubTask} = initSyncThroughDataStruct();
+
+    commit();
+    const task1 = new Task({name: 'task1'});
+    commit();
+    test("Added task1");
+    const task2 = new Task({name: 'task23', description: 'second task'});
+    commit();
+    test("Added task2");
+    new SubTask({name: 'subtask23', task: task1, description: 'subtask'});
+    commit();
+    test("Added nested");
+
+
+
+  })
 
 });

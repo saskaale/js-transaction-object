@@ -3,36 +3,6 @@ import {createDatabase, createEntity, Entity, Database} from './src/orm';
 import {TinySeq} from './src/utils';
 
 
-const initDb = (datastruct, entities = {}) => {
-  const MyDb = createDatabase('MyDb');
-  const db = new MyDb(datastruct);
-  const Task = createEntity('Task', db, {
-                name: null,
-                description: null
-              }, {
-                subtasks: null,
-                subsubtasks: null
-              },
-              entities.Task);
-  const SubTask = createEntity('SubTask', db, {
-                task: {type:'Task', ref: 'subtasks'},
-                name: null,
-                description: null,
-                priority: null
-              }, {
-                subsubtasks: null
-              },
-              entities.SubTask);
-  const SubSubTask = createEntity('SubSubTask', db, {
-                subtask: {type:'SubTask', ref: 'subsubtasks'},
-                name: null
-              },
-              {},
-              entities.SubSubTask);
-  db.build();
-  return {db, Task, SubTask, SubSubTask, MyDb};
-}
-
 const datastruct = new DataStruct();
 const {db, Task, SubSubTask, SubTask} = initDb(datastruct);
 

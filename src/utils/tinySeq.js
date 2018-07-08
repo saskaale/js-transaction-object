@@ -5,18 +5,13 @@ function isObject(v){
 };
 
 function TinySeq(_d){
+  //so we can chain TinySeq
+  if(_d && _d.toRaw)
+    _d = _d.toRaw();
 
-  const _isObject = () => {
-    return isObject(_d);
-  }
-
-  const _isArray = () => {
-    return Array.isArray(_d);
-  }
-
-  const forEach = (f) => {
-    map(f);
-  }
+  const _isObject = () => isObject(_d);
+  const _isArray = () => Array.isArray(_d);
+  const forEach = (f) => { map(f); };
 
   const first = () => {
     if(_isArray()){
@@ -54,14 +49,6 @@ function TinySeq(_d){
     throw new Error('Unreachable');
   }
 
-  const filter = (f) => {
-    return mapFilter(undefined, f);
-  }
-
-  const map = (f) => {
-    return mapFilter(f);
-  }
-
   const toObject = () => {
     if(_isObject()){
       return _d;
@@ -82,12 +69,33 @@ function TinySeq(_d){
     throw new Error('Unreachable');
   }
 
-  const toKeyed = () => {
-    return TinySeq(toObject());
-  }
+  const filter = (f) => mapFilter(undefined, f);
+  const map = (f) => mapFilter(f);
+  const toKeyed = () => TinySeq(toObject());
+  const toIndexed = () => TinySeq(toArray());
+  const isKeyed = _isObject;
+  const isIndexed = _isArray;
+  const toRaw = () => _d;
 
-  const toIndexed = () => {
-    return TinySeq(toArray());
+  const concat = () => {
+    let args = args.map(e=>TinySeq(e));
+    let indexed = args.reduce(
+        (prev, cur) => prev && cur.isIndexed(),
+        isIndexed()
+      );
+    if(isIndexed){
+      let d = toArray();
+      args.forEach(e => {
+        d = d.concat(e.toArray());
+      });
+      return TinySeq(d);
+    }else{
+      const addEls = (e,k) => {d[k] = e;};
+      let d = {};
+      forEach(addEls);
+      args.forEach(addEls);
+      return TinySeq(d);
+    }
   }
 
   return {
@@ -96,6 +104,9 @@ function TinySeq(_d){
     forEach,
     first,
     map,
+    concat,
+    isKeyed,
+    toRaw,
     filter,
     toArray,
     toObject,
