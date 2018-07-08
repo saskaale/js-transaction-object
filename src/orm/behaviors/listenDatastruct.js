@@ -40,7 +40,11 @@ export default (parent) => class extends parent{
 
     const valuesForStep = (entityName, values, addStep) => {
       const Entity = this.Entities[entityName];
-      return TinySeq(values).filter((_,k) => Entity.prototype[addStep <= 0 ? '_regPropDef' : '_refPropDef'][k]).toObject();
+      return TinySeq(values).filter((_,k) => {
+        if(addStep <= 0)
+          return Entity.prototype._regPropDef[k];
+        return Entity.prototype._refPropDefId[k];
+      }).toObject();
     }
 
     const upsertEntity = (entityName, uuid, values, addStep, remove) => {

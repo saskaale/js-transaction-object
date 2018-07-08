@@ -45,7 +45,7 @@ export default class Entity{
     const buildReference = (property, k) => ({
       set: function(v){
         v = beforeSet.call(this, property, k, v);
-        if(this[k] && (this[k] instanceof Entity)){
+        if(this[k] && v !== this[k] && (this[k] instanceof Entity)){
           this[k].deleteRef(k, this);
         }
         if(v !== undefined){
@@ -77,12 +77,18 @@ export default class Entity{
      * Build property descriptors
      */
     entity.prototype._propDef = enchanceKey(entity.prototype._propDef);
+
+
     //properties which are references
     entity.prototype._refPropDef = TinySeq(entity.prototype._propDef)
-      .filter(({ref})=>ref).toObject();
+      .filter(({ref, type})=>ref && type).toObject();
+    entity.prototype._refPropDefId = TinySeq(entity.prototype._refPropDef)
+      .mapValues(([k,v]) => ([k+'Id', v])).toObject();
+
     //properties which are regular values
     entity.prototype._regPropDef = TinySeq(entity.prototype._propDef)
-        .filter(({ref})=>!ref).toObject();
+        .filter(({ref, type})=>!ref || !type).toObject();
+
     //init the property descriptors
     TinySeq(entity.prototype._refPropDef)
       .forEach((p, k) => initProperty(buildReference(p,k), k));
@@ -139,8 +145,14 @@ export default class Entity{
   }
 
   _update(data){
-    TinySeq(data).filter((e,k)=>!this._propDef[k].ref).forEach((v,k) => this[k] = v);
-    TinySeq(data).filter((e,k)=>this._propDef[k].ref).forEach((v,k) => this[k] = v);
+    TinySeq(data).filter((e,k)=>this._regPropDef[k]).forEach((v,k) => this[k] = v);
+    TinySeq(data).filter((e,k)=>this._refPropDef[k]).forEach((v,k) => this[k] = v);
+    TinySeq(data).filter((e,k)=>this._refPropDefId[k])
+      .forEach((v,k) => {
+        const propdef = this._refPropDefId[k];
+        const entity = this._db[propdef.type][v];
+        this[k.substring(0, k.length-2)] = entity;
+      });
   }
 
   _create(data){

@@ -76,6 +76,14 @@ function TinySeq(_d){
   const isKeyed = _isObject;
   const isIndexed = _isArray;
   const toRaw = () => _d;
+  const mapValues = (f) => {
+    let ret = {};
+    forEach((v, k) => {
+      let [newk, newv] = f([k,v]);
+      ret[newk] = newv;
+    });
+    return TinySeq(ret);
+  }
 
   const concat = () => {
     let args = args.map(e=>TinySeq(e));
@@ -104,6 +112,7 @@ function TinySeq(_d){
     forEach,
     first,
     map,
+    mapValues,
     concat,
     isKeyed,
     toRaw,

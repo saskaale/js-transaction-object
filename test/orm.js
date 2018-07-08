@@ -42,7 +42,7 @@ describe('ORM', () => {
     const {db: dblistener} = initDb(ds);
 
     const objTo = (el) => {
-      const mapValue = (value) =>
+      const mapValue = (value) => 
         (value && value instanceof Entity) ? value.uuid : value;
 
       return TinySeq(el.Entities).map((e, k) => 
@@ -59,7 +59,7 @@ describe('ORM', () => {
         let oemitter = objTo(dbemitter);
         let oelistener = objTo(dblistener);
 
-        expect(oemitter).to.deep.equal(oelistener);
+        expect(oelistener).to.deep.equal(oemitter);
       });
     }
 
@@ -280,9 +280,9 @@ describe('ORM', () => {
     const task1 = new Task({name: 'task1'});
     commit();
     test("Added task1");
-    const task2 = new Task({name: 'task23', description: 'second task'});
-    commit();
-    test("Added task2");
+//    const task2 = new Task({name: 'task23', description: 'second task'});
+//    commit();
+//    test("Added task2");
     new SubTask({name: 'subtask23', task: task1, description: 'subtask'});
     commit();
     test("Added nested");
