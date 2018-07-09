@@ -1,9 +1,21 @@
 import {TinySeq, enchanceKey, defaultKey, one2arr, extend} from '../utils';
 import uuidv1 from 'uuid/v1';
 
-const defaultProperties = {uuid: {update: () => {throw new Error("You cannot set id on entity");}}};
+const defaultProperties = {uuid: {
+  update: () => {throw new Error("You cannot set id on entity");},
+  get:    function() { return this._uuid; },
+  set:    function(v){ this._data.uuid = this._uuid = v; },
+}};
 
-const deletedGetSet = () => {throw new Error('This object was deleted')};
+const deletedGetSet = () => { throw new Error('This object was deleted'); };
+
+const beforeSet = function({update}, k, v) {
+  let oldVal = this[k];
+  if(v !== oldVal && oldVal !== undefined && update){
+    v = update(this,v);
+  }
+  return v;
+};
 
 export default class Entity{
   static init(db, entity, properties = {}, navigation = {}){
@@ -34,14 +46,6 @@ export default class Entity{
         });
     };
 
-    const beforeSet = function({update}, k, v){
-      let oldVal = this[k];
-      if(v !== oldVal && oldVal !== undefined && update){
-        v = update(this,v);
-      }
-      return v;
-    };
-
     const buildReference = (property, k) => ({
       set: function(v){
         v = beforeSet.call(this, property, k, v);
@@ -62,17 +66,24 @@ export default class Entity{
       }
     });
 
-    const buildProperty = (property, k) => ({
-      set: function(v){
-        v = beforeSet.call(this, property, k, v);
+    const buildProperty = (property, k) => {
+      const set = property.set || function(v){
         this._data[k] = v;
-        return true;
-      },
-      get: function(){
+      };
+      const get = property.get || function(){
         return this._data[k];
-      }
-    });
+      };
 
+      return {
+        set: function(v){
+            v = beforeSet.call(this, property, k, v);
+            set.call(this, v);
+            return true;
+        },
+        get
+      };
+    }
+    
     /*
      * Build property descriptors
      */

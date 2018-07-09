@@ -19,8 +19,10 @@ const Database =  ListenDatastruct(class{
   }
 
   _delete(entity){
-    delete this[entity.className][entity.uuid];
-    delete this._data[entity.className][entity.uuid];
+    if(this[entity.className][entity.uuid])
+      delete this[entity.className][entity.uuid];
+    if(this._data[entity.className][entity.uuid])
+      delete this._data[entity.className][entity.uuid];
   }
 
   build(){

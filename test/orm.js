@@ -280,13 +280,16 @@ describe('ORM', () => {
     const task1 = new Task({name: 'task1'});
     commit();
     test("Added task1");
-//    const task2 = new Task({name: 'task23', description: 'second task'});
-//    commit();
-//    test("Added task2");
+    const task2 = new Task({name: 'task23', description: 'second task'});
+    commit();
+    test("Added task2");
     new SubTask({name: 'subtask23', task: task1, description: 'subtask'});
     commit();
     test("Added nested");
-
+    task2.delete();
+    commit();
+    test("Deleted task2");
+    
 
 
   })
