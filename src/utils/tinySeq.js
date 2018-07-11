@@ -85,6 +85,14 @@ function TinySeq(_d){
     return TinySeq(ret);
   }
 
+  const size = () => {
+    if(_isArray())
+      return _d.length;
+    else if(_isObject())
+      return Object.keys(_d).length;
+    throw new Error('Unreachable');    
+  }
+
   const concat = () => {
     let args = args.map(e=>TinySeq(e));
     let indexed = args.reduce(
@@ -113,6 +121,7 @@ function TinySeq(_d){
     isKeyed,
     forEach,
     first,
+    size,
     map,
     mapValues,
     concat,

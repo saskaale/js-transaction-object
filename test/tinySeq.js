@@ -44,6 +44,18 @@ describe('TinySeq', () => {
     });
   });
 
+
+  describe('#size', () => {
+    it("array", () => {
+        expect(TinySeq([0,6,1]).size()).to.eq(3);
+        expect(TinySeq([0,0,0,0]).size()).to.eq(4);
+    });
+    it("object", () => {
+        expect(TinySeq({a:0,c:6,b:1}).size()).to.eq(3);
+        expect(TinySeq({aa:0,b:0,c:0,aaa:0}).size()).to.eq(4);
+    });
+  });
+
   describe('#mapForeach', () => {
     it("arrMap", () => {
         expect(TinySeq([1,{a:1,b:2},3])

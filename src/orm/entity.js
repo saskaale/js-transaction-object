@@ -50,7 +50,7 @@ export default class Entity{
       set: function(v){
         v = beforeSet.call(this, property, k, v);
         if(this[k] && v !== this[k] && (this[k] instanceof Entity)){
-          this[k].deleteRef(k, this);
+          this[k].deleteRef(property.ref, this);
         }
         if(v !== undefined){
           if(property.type && !(v instanceof db.Entities[property.type]))
@@ -135,6 +135,13 @@ export default class Entity{
   }
 
   delete(){
+    //delete references
+    TinySeq(this._refPropDef).forEach(({ref},k)=>{
+      if(this[k])
+        this[k].deleteRef(ref, this);
+    });
+
+    //delete raw data structures
     this._db._delete(this);
 
     /*

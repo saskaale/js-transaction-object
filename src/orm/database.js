@@ -37,7 +37,6 @@ const Database =  ListenDatastruct(class{
   initEntity(entity, ...args){
     this.Entities[entity.prototype.className] = entity;
     this[entity.prototype.className] = {};
-
     Entity.init(this, entity, ...args);
   }
 });

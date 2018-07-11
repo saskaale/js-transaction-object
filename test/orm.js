@@ -217,12 +217,14 @@ describe('ORM', () => {
 
   });
 
+
   describe('#deleted_throw', () => {
-    const {db, Task} = initDb();
+    const {db, Task, SubTask} = initDb();
 
     const task1 = new Task({name: 'task1'});
     const task2 = new Task({name: 'task2'});
-
+    const subtask1 = new SubTask({name: "Subtask1", task: task1});
+    const subtask2 = new SubTask({name: "Subtask2", task: task2});
 
     it('test', () => {
       const getName = (el) => (() => el.name);
@@ -236,6 +238,48 @@ describe('ORM', () => {
       expect(getName(task2)).to.not.throw();
     });
   });
+
+  describe('#delete_reference', () => {
+    const {db, Task, SubTask} = initDb();
+
+    const task1 = new Task({name: 'task1'});
+    const task2 = new Task({name: 'task2'});
+    const subtask1 = new SubTask({name: 'subtask1', task: task1});
+    const subtask1_2 = new SubTask({name: 'subtask1_2', task: task1});
+
+    it('init', () => {
+      expect(TinySeq(task1.subtasks).size()).to.eq(2);
+      expect(TinySeq(task2.subtasks).size()).to.eq(0);
+    });
+
+    it('delete', () => {
+      subtask1_2.delete();
+      expect(TinySeq(task1.subtasks).size()).to.eq(1);
+      expect(TinySeq(task2.subtasks).size()).to.eq(0);
+    });
+  });
+
+  describe('#udpate_reference', () => {
+    const {db, Task, SubTask} = initDb();
+
+    const task1 = new Task({name: 'task1'});
+    const task2 = new Task({name: 'task2'});
+    const subtask1 = new SubTask({name: 'subtask1', task: task1});
+    const subtask1_2 = new SubTask({name: 'subtask1_2', task: task1});
+
+    it('init', () => {
+      expect(TinySeq(task1.subtasks).size()).to.eq(2);
+      expect(TinySeq(task2.subtasks).size()).to.eq(0);
+    });
+
+    it('update', () => {
+      subtask1_2.task = task2;
+      expect(TinySeq(task1.subtasks).size()).to.eq(1);
+      expect(TinySeq(task2.subtasks).size()).to.eq(1);
+    });
+
+  });
+
 
   describe('#custom_class', () => {
     class myTask extends Entity{
@@ -283,10 +327,16 @@ describe('ORM', () => {
     const task2 = new Task({name: 'task23', description: 'second task'});
     commit();
     test("Added task2");
+    const task3 = new Task({name: 'task3', description: 'third task'});
+    commit();
+    test("Added task3");
     new SubTask({name: 'subtask23', task: task1, description: 'subtask'});
     commit();
     test("Added nested");
     task2.delete();
+    commit();
+    test("Deleted task2");
+    task3.delete();
     commit();
     test("Deleted task2");
     
