@@ -226,7 +226,7 @@ describe('ORM', () => {
     const subtask1 = new SubTask({name: "Subtask1", task: task1});
     const subtask2 = new SubTask({name: "Subtask2", task: task2});
 
-    it('test', () => {
+    it('get_property', () => {
       const getName = (el) => (() => el.name);
 
       expect(getName(task1)).to.not.throw();
@@ -237,6 +237,15 @@ describe('ORM', () => {
       expect(getName(task1)).to.throw();
       expect(getName(task2)).to.not.throw();
     });
+
+    it('double_delete', () => {
+      expect(() => {
+        task2.delete();
+      }).to.not.throw();
+      expect(() => {
+        task2.delete();
+      }).to.throw();
+    })
   });
 
   describe('#delete_reference', () => {
@@ -320,26 +329,44 @@ describe('ORM', () => {
       SubTask, 
       SubSubTask} = initSyncThroughDataStruct();
 
+    const task0 = new Task({name: 'task0'});
+
     commit();
+
+    
     const task1 = new Task({name: 'task1'});
     commit();
     test("Added task1");
+
+    task1.name = 'task1_updated';
+    commit();
+    test("Updated task1");
+
     const task2 = new Task({name: 'task23', description: 'second task'});
     commit();
     test("Added task2");
+
     const task3 = new Task({name: 'task3', description: 'third task'});
     commit();
     test("Added task3");
-    new SubTask({name: 'subtask23', task: task1, description: 'subtask'});
+
+    const subtask1 = new SubTask({name: 'subtask23', task: task1, description: 'subtask'});
     commit();
     test("Added nested");
+
     task2.delete();
     commit();
     test("Deleted task2");
+
     task3.delete();
     commit();
-    test("Deleted task2");
-    
+    test("Deleted task3");
+
+  /*
+    subtask1.task = task0;
+    commit();
+    test("updated reference");
+  */  
 
 
   })
