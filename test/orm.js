@@ -4,6 +4,20 @@ import DataStruct from '../src/datastruct';
 import {createDatabase, createEntity, Entity, Database} from '../src/orm';
 import {TinySeq} from '../src/utils';
 
+const chaiPromise = (msg, action) => {
+  return new Promise((resolve, reject) => {
+    it(msg, () => {
+      try{
+        action();
+        resolve();
+      }catch(e){
+        reject();
+        throw e;
+      }
+    });
+  });
+};
+
 describe('ORM', () => {
   const initDb = (datastruct, entities = {}) => {
     const MyDb = createDatabase('MyDb');
@@ -54,18 +68,28 @@ describe('ORM', () => {
       ).toObject();
     }
 
-    const test = (msg) => {
-      it(msg, () => {
-        let oemitter = objTo(dbemitter);
-        let oelistener = objTo(dblistener);
-
-        expect(oelistener).to.deep.equal(oemitter);
+    const test = (msg, action) => {
+      return new Promise((resolve, reject) => {
+        it(msg, () => {
+          try{
+            action();
+            let oemitter = objTo(dbemitter);
+            let oelistener = objTo(dblistener);
+  
+            expect(oelistener).to.deep.equal(oemitter);
+            resolve();
+          }catch(e){
+            reject();
+            throw e;
+          }
+        });
       });
     }
 
     return {
       dbemitter, 
       dblistener, 
+      db: dbemitter,
       commit: ds.commit.bind(ds), 
       test,
       Task, 
@@ -324,6 +348,9 @@ describe('ORM', () => {
   describe("#sync_through_ds", () => {
     const {
       commit, 
+      db,
+      dbemitter,
+      dblistener,
       test,
       Task, 
       SubTask, 
@@ -333,42 +360,67 @@ describe('ORM', () => {
 
     commit();
 
-    
-    const task1 = new Task({name: 'task1'});
-    commit();
-    test("Added task1");
-
-    task1.name = 'task1_updated';
-    commit();
-    test("Updated task1");
-
-    const task2 = new Task({name: 'task23', description: 'second task'});
-    commit();
-    test("Added task2");
-
-    const task3 = new Task({name: 'task3', description: 'third task'});
-    commit();
-    test("Added task3");
-
-    const subtask1 = new SubTask({name: 'subtask23', task: task1, description: 'subtask'});
-    commit();
-    test("Added nested");
-
-    task2.delete();
-    commit();
-    test("Deleted task2");
-
-    task3.delete();
-    commit();
-    test("Deleted task3");
-
-  /*
-    subtask1.task = task0;
-    commit();
-    test("updated reference");
-  */  
-
-
+    let task1, task2, task3, subtask1;
+    (  test("Added task1 with subtask", () => {
+        task1 = new Task({name: 'task1'});
+        subtask1 = new SubTask({name: 'subtask23', task: task1, description: 'subtask'});
+        commit();
+      })
+    ).then(
+      test("Updated task1", () => {
+        task1.name = 'task1_updated';
+        commit();    
+      })
+    ).then(
+      test("Added task2", () => {
+        task2 = new Task({name: 'task23', description: 'second task'});
+        commit();    
+      })
+    ).then(
+      test("Added task3", () => {
+        task3 = new Task({name: 'task3', description: 'third task'});
+        commit();
+      })
+   ).then(
+      chaiPromise("Number of the ", () => {
+        expect(TinySeq(task1.subtasks).size()).to.eq(1);
+      })
+    ).then(
+      test("Added task3", () => {
+        task3 = new Task({name: 'task3', description: 'third task'});
+        commit();
+      })
+    ).then(
+      test("subtask1 set task to same", () => {
+        subtask1.task = task1;
+        commit();
+      })
+    ).then(
+      test("Deleted task2", () => {
+        task2.delete();
+        commit();
+      })
+    ).then(
+      test("Deleted task2 again", () => {
+        expect(() => {
+          task2.delete();
+        }).to.throw();
+        commit();
+      })
+    ).then(
+      test("Deleted task3", () => {
+        task3.delete();
+        commit();
+      })
+    ).then(
+      test("updated reference", () => {
+        dblistener.DEBUG = true;
+        subtask1.task = task0;
+        commit();
+        dblistener.DEBUG = false;
+      })
+    ).then();
+  
   })
 
 });

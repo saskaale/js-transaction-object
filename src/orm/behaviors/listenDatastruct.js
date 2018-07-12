@@ -47,7 +47,7 @@ export default (parent) => class extends parent{
       }).toObject();
     }
 
-    const upsertEntity = (entityName, uuid, values, addStep, remove) => {
+    const upsertEntity = (entityName, uuid, values, addStep) => {
       const entity = this[entityName][uuid];
       values = valuesForStep(entityName, values, addStep);
       if(addStep <= 0 && !entity){
@@ -62,10 +62,10 @@ export default (parent) => class extends parent{
       if(path.length > 1){
         if(path.length > 2)
           value = {[path[2]]:value};
-        upsertEntity(path[0], path[1], value, addStep, true);
+        upsertEntity(path[0], path[1], value, addStep);
       }else{
         TinySeq(value).forEach((entityValue, entityId)=>{
-          upsertEntity(path[0], entityId, entityValue, addStep, true);
+          upsertEntity(path[0], entityId, entityValue, addStep);
         });
       }
     }
@@ -81,7 +81,7 @@ export default (parent) => class extends parent{
           case 'add':
             doUpsert(path, value, addStep);
             break;
-          case 'update':
+          case 'replace':
             doUpsert(path, value, addStep);
             break;
           case 'remove':

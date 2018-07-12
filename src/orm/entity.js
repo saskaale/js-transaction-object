@@ -66,6 +66,22 @@ export default class Entity{
       }
     });
 
+/*    const buildReferenceId = (property, k) => {
+      const refk = k.substring(0, k.length-2);
+      return {
+        set: function(uuid){
+          const entity = db[property.type][uuid];
+          if(!entity)
+            throw new Error("setting reference through "+k+" : Entity "+propety.type+"["+uuid+"]");
+          this[refk] = entity;
+        },
+        get: function(){
+          const entity = this[refk];
+          return entity ? entity.uuid : undefined;
+        }
+      }
+    }
+*/
     const buildProperty = (property, k) => {
       const set = property.set || function(v){
         this._data[k] = v;
@@ -105,7 +121,8 @@ export default class Entity{
       .forEach((p, k) => initProperty(buildReference(p,k), k));
     TinySeq(entity.prototype._regPropDef)
       .forEach((p, k) => initProperty(buildProperty(p,k), k));
-
+//    TinySeq(entity.prototype._refPropDefId)
+//      .forEach((p, k) => initProperty(buildReferenceId(p,k), k));
 
     /*
      * Build navigation property descriptors
