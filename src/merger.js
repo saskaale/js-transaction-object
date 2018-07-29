@@ -20,7 +20,7 @@ const defaultConf = {
 export default function(data, commit, conf = {}){
     conf = TinySeq(defaultConf).concat(conf).toObject();
 
-    const {strategy, skipCommits} = conf;
+    const {strategy, skipSubscribers} = conf;
     const {srcuuid} = commit;
 
     //merges the commit into the data tree
@@ -42,11 +42,11 @@ export default function(data, commit, conf = {}){
       //patch the merged` commit
       commits.forEach(commit=>{
         reverted[commit.uuid] = false;
-        data.patch(commit, skipCommits);
+        data.patch(commit, skipSubscribers);
       });
     }
     const applyCommit = () => {
-      data.patch(commit, skipCommits);
+      data.patch(commit, skipSubscribers);
       applied = true;
     }
 

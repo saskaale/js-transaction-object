@@ -102,18 +102,17 @@ describe('merger', () => {
 
   });
 
-
-  describe('#merger_subscribtions_skipSome', () => {
+  describe('#merger_subscribtions', () => {
     let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
     obj.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.IMMEDIATE; //when this would work, the others would also work
-    let data = obj.data;
+    let data = obj.data, subscriber = (e)=>mychanges.push(e);
     let mychanges = [];
-    obj.subscribe((e)=>mychanges.push(e));
+    obj.subscribe(subscriber);
 
 
-    let obj2 = DataStruct.from(obj);
+    let obj2 = DataStruct.from(obj), subscriber2 = (e)=>mychanges2.push(e);;
     let mychanges2 = [];
-    obj2.subscribe((e)=>mychanges2.push(e));
+    obj2.subscribe(subscriber2);
 
 
     //prepare commits
@@ -121,11 +120,19 @@ describe('merger', () => {
     data.b = 4;
     data.c = 5;
 
-    if('commit_insert', () => {
+    if('skipSome', () => {
       //check empty
       expect(mychanges.length).to.eq(3);
       expect(mychanges2.length).to.eq(0);
+
+      let withoutFirst = new Set([subscriber]);
+      mychanges.forEach((e) => {
+        merger(obj2, e, {skipSubscribers: withoutFirst});
+      });
+
+      expect(mychanges.length).to.eq(3);
+      expect(mychanges2.length).to.eq(3);
     });
-    
+
   });
 });
