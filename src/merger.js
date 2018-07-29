@@ -1,75 +1,81 @@
+import {TinySeq} from './utils';
+
 /*
  * strategy
  *    - discard
  *    - rollback
  */
 
-const ALLOWED_STRATEGIES = {
-  DISCARD:  0,
-  ROLLBACK: 1,
-  ALLOW_CONFLICT: 2
+const STRATEGIES = {
+  LOCAL:  0,
+  REMOTE: 1,
 };
 
-export default function(data, commit, strategy = ALLOWED_STRATEGIES.DISCARD){
+const is = (strategy, flag) => strategy & flag;
+
+const defaultConf = {
+  strategy: STRATEGIES.LOCAL,
+}
+
+export default function(data, commit, conf = {}){
+    conf = TinySeq(defaultConf).concat(conf).toObject();
+
+    const {strategy, skipCommits} = conf;
     const {srcuuid} = commit;
+
     //merges the commit into the data tree
 
     if(!data.commited){
       throw new Error("data should not have uncommited changes");
     }
 
-    let enduuid = data.uuid;
     let commits = data.commits(srcuuid);
-
-    let olddiff;
-    if(!(strategy & ALLOWED_STRATEGIES.ALLOW_CONFLICT)){
-      olddiff = data.diffCommits(srcuuid);
-    }
-
-    //this would throw error in case commit not found
-    data.rollback(srcuuid);
-    let last_applied_uuid = srcuuid;
+    let reverted = {};
     let applied = false;
 
+    const rollbackToSrcuuid = () => {
+      applied = false;
+      data.rollback(srcuuid);
+      TinySeq(commits).forEach(({uuid}) => {reverted[uuid] = true});
+    }
     let reapplyChanges = () => {
       //patch the merged` commit
       commits.forEach(commit=>{
-        data.patch(commit)
-        last_applied_uuid = commit.uuid;
+        reverted[commit.uuid] = false;
+        data.patch(commit, skipCommits);
       });
     }
+    const applyCommit = () => {
+      data.patch(commit, skipCommits);
+      applied = true;
+    }
+
+    //this would throw error in case commit not found
+    rollbackToSrcuuid();
 
     try{
       //patch the merged commit
-      data.patch(commit);
-      applied = true;
-      last_applied_uuid = commit.uuid;
-
+      applyCommit();
       reapplyChanges();
-
-      if(!(strategy & ALLOWED_STRATEGIES.ALLOW_CONFLICT)){
-        let newdiff = data.diffCommits(srcuuid);
-        if(false){
-
-
-          throw new Error("DATA CONFLICT error");
-        }
-      }
     }catch(e){
-      if(strategy & ALLOWED_STRATEGIES.ROLLBACK){
-        //ROLLBACK
-        data.rollback();
-      }else{
+      console.error("ERROR during merging");
+      console.error(e);
+      rollbackToSrcuuid();
+      if(is(strategy, STRATEGIES.REMOTE)){
+        applyCommit();
+      }else if(is(strategy, STRATEGIES.LOCAL)){
         //REVERT
-        data.rollback(srcuuid);
-        applied = false;
-        last_applied_uuid = srcuuid;
         reapplyChanges();
       }
     }
 
+    reverted[commit.uuid] = !applied;
+    reverted = TinySeq(reverted).filter(e=>e).map((_,k)=>k).toArray();
+
     return {
-      current_uuid: last_applied_uuid,
-      applied
+      applied,
+      reverted
     }
 }
+
+export {STRATEGIES};

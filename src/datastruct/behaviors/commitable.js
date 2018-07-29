@@ -18,7 +18,7 @@ const Commitable = (parent) => class extends parent{
     super(...args);
     this.subscribtions = new Map();
   }
-  commit(user=true){
+  commit(user=true, skipCommits=undefined){
     const oldhistory = this._history.last()[1];
     if(oldhistory.data !== this.immutable){
       this._history.onNew(this._version, this.immutable);
@@ -27,7 +27,14 @@ const Commitable = (parent) => class extends parent{
         const newhistory = this._history.last()[1];
         const datadiff = this._commitMsg(oldhistory, newhistory);
         this.subscribtions.forEach(subscribtion => {
-          subscribtion(datadiff);
+          if(skipCommits && skipCommits.has(subscribtion))
+            return;
+          try{
+            subscribtion(datadiff);
+          }catch(e){
+            console.error("!!!!ERROR in the subscribe occured");
+            console.error(e);
+          }
         });
       }
     }
@@ -63,7 +70,7 @@ const Commitable = (parent) => class extends parent{
   }
   /*
    * Groupped commits according to the groups
-   */
+   *
   diffCommits(from,to = this._version){
     from = this._history.find(from);
     to = this._history.find(to);
@@ -71,7 +78,7 @@ const Commitable = (parent) => class extends parent{
       throw new Error('not able to find from or to commit');
     return this._commitMsg(from[1], to[1]);
   }
-
+*/
 
   subscribe(cbk){
     const key = Symbol('subscribtion');
@@ -84,12 +91,12 @@ const Commitable = (parent) => class extends parent{
 
   /***** Diff and patch support *****/
 
-  patch({diff, uuid}){
+  patch({diff, uuid}, skipCommits){
     let prev_started = this._started;
-    this.commit();
+    this.commit(true);
     this.begin(true, uuid);
     this.immutable = this._patch(this.immutable, diff);
-    this.commit();
+    this.commit(true, skipCommits);
     if(prev_started)
       this.begin();
   }

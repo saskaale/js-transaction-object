@@ -360,7 +360,7 @@ describe('ORM', () => {
 
     commit();
 
-    let task1, task2, task3, subtask1;
+    let task1, task2, task3, subtask1, subtask2, subtask3;
     (  test("Added task1 with subtask", () => {
         task1 = new Task({name: 'task1'});
         subtask1 = new SubTask({name: 'subtask23', task: task1, description: 'subtask'});
@@ -382,7 +382,7 @@ describe('ORM', () => {
         commit();
       })
    ).then(
-      chaiPromise("Number of the ", () => {
+      chaiPromise("task1 - number of the subtasks", () => {
         expect(TinySeq(task1.subtasks).size()).to.eq(1);
       })
     ).then(
@@ -419,8 +419,19 @@ describe('ORM', () => {
         commit();
         dblistener.DEBUG = false;
       })
+    ).then(
+      test("Added multiple", () => {
+        task3 = new Task({name: 'task3', description: 'third task'});
+        subtask2 = new SubTask({name: 'subtask2', task: task3, description: 'subtask'});
+        subtask3 = new SubTask({name: 'subtask3', task: task3, description: 'subtask'});
+        commit();
+      })
+    ).then(
+      chaiPromise("task3 - number of the subtasks", () => {
+        expect(TinySeq(task3.subtasks).size()).to.eq(2);
+      })
     ).then();
-  
+
   })
 
 });

@@ -101,4 +101,31 @@ describe('merger', () => {
     });
 
   });
+
+
+  describe('#merger_subscribtions_skipSome', () => {
+    let obj = new DataStruct({a:{a1:1,a2:1.2},b:2});
+    obj.AUTOCOMMIT_STRATEGY = DataStruct.AUTOCOMMIT_STRATEGIES.IMMEDIATE; //when this would work, the others would also work
+    let data = obj.data;
+    let mychanges = [];
+    obj.subscribe((e)=>mychanges.push(e));
+
+
+    let obj2 = DataStruct.from(obj);
+    let mychanges2 = [];
+    obj2.subscribe((e)=>mychanges2.push(e));
+
+
+    //prepare commits
+    data.a = 3;
+    data.b = 4;
+    data.c = 5;
+
+    if('commit_insert', () => {
+      //check empty
+      expect(mychanges.length).to.eq(3);
+      expect(mychanges2.length).to.eq(0);
+    });
+    
+  });
 });

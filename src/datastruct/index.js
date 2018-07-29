@@ -14,6 +14,17 @@ const DataStruct = Commitable(Exportable(class{
     this.fromJS({data: o});
   }
 
+  /** shortcut **/
+  static from(source){
+    if(source instanceof DataStruct)
+      source = source.toJS();
+
+    let e = new DataStruct({});    
+    e.fromJS(source);
+    return e;
+  }
+
+
   /*********** Data accessors ************/
   get data(){
     return this._data;

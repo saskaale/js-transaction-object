@@ -99,6 +99,25 @@ describe('TinySeq', () => {
         expect(TinySeq([4,7,10]).mapValues(([k,v]) => ([k*2, v*3])).toObject())
             .deep.to.equal({'0':12, '2':21, '4': 30});
     });
-});
+
+    it("arrConcat", () => {
+        expect(TinySeq([4,7,10]).concat([4,1], [-2]).toArray())
+            .deep.to.equal([4,7,10,4,1,-2]);
+    });
+
+    it("objConcat", () => {
+        expect(TinySeq({a:4,b:7,c:10}).concat({d:4,e:1}, {f:-2}).toObject())
+            .deep.to.equal({a:4,b:7,c:10,d:4,e:1,f:-2});
+    });
+
+    it("mixConcat", () => {
+        expect(TinySeq([4,7,10]).concat({d:4,e:1}, {f:-2}).toObject())
+            .deep.to.equal({'0':4,'1':7,'2':10,d:4,e:1,f:-2});
+
+        expect(TinySeq({a:4,b:7,c:10}).concat({d:4,e:1}, [-2]).toObject())
+            .deep.to.equal({a:4,b:7,c:10,d:4,e:1,'0':-2});
+    });
+
+  });
 
 });

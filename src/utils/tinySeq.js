@@ -90,26 +90,27 @@ function TinySeq(_d){
       return _d.length;
     else if(_isObject())
       return Object.keys(_d).length;
-    throw new Error('Unreachable');    
+    throw new Error('Unreachable');
   }
 
-  const concat = () => {
-    let args = args.map(e=>TinySeq(e));
+  const concat = (...args) => {
+    args = TinySeq(args).map(e=>TinySeq(e)).toArray();
+
     let indexed = args.reduce(
         (prev, cur) => prev && cur.isIndexed(),
         isIndexed()
       );
-    if(isIndexed){
+    if(indexed){
       let d = toArray();
       args.forEach(e => {
         d = d.concat(e.toArray());
       });
       return TinySeq(d);
     }else{
-      const addEls = (e,k) => {d[k] = e;};
       let d = {};
+      const addEls = (e,k) => {d[k] = e;};
       forEach(addEls);
-      args.forEach(addEls);
+      args.forEach((e) => e.forEach(addEls));
       return TinySeq(d);
     }
   }

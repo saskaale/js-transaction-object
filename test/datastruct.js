@@ -178,5 +178,4 @@ describe('DataStruct', () => {
     const objdump = obj.toJS(startuuid);
     expect(objdump.changes).to.deep.equal(mychanges);
   });
-
 });
