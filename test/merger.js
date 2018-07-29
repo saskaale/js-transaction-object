@@ -120,7 +120,7 @@ describe('merger', () => {
     data.b = 4;
     data.c = 5;
 
-    if('skipSome', () => {
+    it('skipSome', () => {
       //check empty
       expect(mychanges.length).to.eq(3);
       expect(mychanges2.length).to.eq(0);
