@@ -6,18 +6,13 @@ import {TinySeq} from './utils';
  *    - rollback
  */
 
-const STRATEGIES = {
-  LOCAL:  0,
-  REMOTE: 1,
-};
-
 const is = (strategy, flag) => strategy & flag;
 
 const defaultConf = {
   strategy: STRATEGIES.LOCAL,
 }
 
-export default function(data, commit, conf = {}){
+export default function(data, commits, conf = {}){
     conf = TinySeq(defaultConf).concat(conf).toObject();
 
     const {strategy, skipSubscribers} = conf;
@@ -29,7 +24,29 @@ export default function(data, commit, conf = {}){
       throw new Error("data should not have uncommited changes");
     }
 
-    let commits = data.commits(srcuuid);
+    //translate commits to its positions
+    let commits_positions = commits.map(e=>data.find(e)).filter(e=>e !== undefined);
+    let positions_map = {};
+    commits_positions.forEach(([_,{uuid}]) => {
+      positions_map[uuid] = true;
+    });
+
+    //sort commits
+    commits_positions.sort((a,b) => a-b);
+
+
+    try{
+      if(commits_positions.length > 0){
+        const startidx = commits_positions[0][0]-1;
+        data.rollback(startidx);
+        const commits = data.commits(startidx)
+                      .filter(({uuid})=>!positions_map[uuid]);
+        commits.forEach(commit => data.patch(commit, skipSubscribers));
+      }
+    }catch(e){
+      data.rollback(startidx);      
+    }
+
     let reverted = {};
     let applied = false;
 

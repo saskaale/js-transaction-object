@@ -20,6 +20,11 @@ export default class History{
     return [this._queue.length-1, d];
   }
   find(commit){
+    if(typeof(commit) === 'number'){
+      if(commit >= 0 && commit < this._queue.length){
+        return this.queue.nth(commit);
+      }
+    }
     for(const [i, d] of this._queue.beginEnd()){
       if(d.uuid === commit){
         return [i, d];
@@ -28,7 +33,9 @@ export default class History{
   }
   rollback(to){
     if(to !== this.LAST_COMMIT){
-      if(to = this.find(to)){
+      if(typeof to === 'number'){
+        this._queue.cutEnd(to);
+      }else if(to = this.find(to)){
         this._queue.cutEnd(to[0]);
       }else{
         throw new Error('Rollback commit does not found')

@@ -1,0 +1,9 @@
+CLIENT                      SERVER
+
+        -> msg (1)
+
+    (1) reject (reverted) <-
+
+
+
+
