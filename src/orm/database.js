@@ -6,6 +6,11 @@ const Database =  ListenDatastruct(class{
   constructor(){
     this.Entities = {};
     this._data = {};
+    this._version = 0;
+  }
+
+  genVersion(){
+    return this._version++;
   }
 
   _createData(Entity, uuid){

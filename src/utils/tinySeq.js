@@ -4,21 +4,80 @@ function isObject(v){
             && Array.isArray(v) === false;
 };
 
-function TinySeq(_d){
-  //so we can chain TinySeq
-  if(_d && _d.toRaw)
-    _d = _d.toRaw();
+function isArray(v){
+  return Array.isArray(v);
+}
 
-  const _isObject = () => isObject(_d);
-  const _isArray = () => Array.isArray(_d);
-  const forEach = (f) => { map(f); };
+const mapFilter = (_d, map, filter) => {
+  if(isArray(_d)){
+    //array
+    let arr = _d;
+    if(filter)
+      arr = arr.filter(filter);
+    if(map)
+    arr = arr.map(map);
+    return new TinySeq(arr);
+  }else if(isObject(_d)){
+    //object
+    let r = {};
+    for(let k in _d){
+      if(filter && !filter(_d[k], k, _d))
+        continue;
+      r[k] = map ? map(_d[k], k, _d) : _d[k];
+    }
+    return new TinySeq(r);
+  }
+  throw new Error('Unreachable');
+}
 
-  const first = () => {
-    if(_isArray()){
-      return _d[0];
-    }else if(_isObject()){
+
+
+class TinySeq{
+  constructor(_d){
+    //so we can chain TinySeq
+    if(_d && isObject(_d) && _d instanceof TinySeq && _d.toRaw)
+      _d = _d.toRaw();
+    this._d = _d;
+  }
+
+  _isObject(){
+    return isObject(this._d);
+  }
+
+  _isArray(){
+    return isArray(this._d);
+  }
+
+  forEach(f){
+    this.map(f);
+  }
+
+  toObject(){
+    if(this._isObject()){
+      return this._d;
+    }
+    let r = {};
+    this.forEach((v,k) => {
+      r[k] = v;
+    });
+    return r;
+  }
+
+  toArray(){
+    if(this._isArray()){
+      return this._d;
+    }else if(this._isObject()){
+      return Object.values(this._d);
+    }
+    throw new Error('Unreachable');
+  }
+
+  first(){
+    if(this._isArray()){
+      return this._d[0];
+    }else if(this._isObject()){
       //object
-      for(let k in _d){
+      for(let k in this._d){
         return _d[k];
       }
       return undefined;
@@ -27,112 +86,76 @@ function TinySeq(_d){
     throw new Error('Unreachable');
   }
 
-  const mapFilter = (map, filter) => {
-    if(_isArray()){
-      //array
-      let arr = _d;
-      if(filter)
-        arr = arr.filter(filter);
-      if(map)
-      arr = arr.map(map);
-      return TinySeq(arr);
-    }else if(_isObject()){
-      //object
-      let r = {};
-      for(let k in _d){
-        if(filter && !filter(_d[k], k, _d))
-          continue;
-        r[k] = map ? map(_d[k], k, _d) : _d[k];
-      }
-      return TinySeq(r);
-    }
-    throw new Error('Unreachable');
+  filter(f) {
+    return mapFilter(this._d, undefined, f);
+  }
+  map(f){
+    return mapFilter(this._d, f);
   }
 
-  const toObject = () => {
-    if(_isObject()){
-      return _d;
-    }
-    let r = {};
-    forEach((v,k) => {
-      r[k] = v;
-    });
-    return r;
+  toKeyed(){
+    return new TinySeq(this.toObject());
   }
-
-  const toArray = () => {
-    if(_isArray()){
-      return _d;
-    }else if(_isObject()){
-      return Object.values(_d);
-    }
-    throw new Error('Unreachable');
+  toIndexed(){
+    return new TinySeq(this.toArray());
   }
-
-  const filter = (f) => mapFilter(undefined, f);
-  const map = (f) => mapFilter(f);
-  const toKeyed = () => TinySeq(toObject());
-  const toIndexed = () => TinySeq(toArray());
-  const isKeyed = _isObject;
-  const isIndexed = _isArray;
-  const toRaw = () => _d;
-  const mapValues = (f) => {
+  isKeyed(){ 
+    return this._isObject();
+  }
+  isIndexed(){
+    return this._isArray();
+  }
+  toRaw(){
+    return this._d;
+  }
+  mapValues(f){
     let ret = {};
-    forEach((v, k) => {
+    this.forEach((v, k) => {
       let [newk, newv] = f([k,v]);
       ret[newk] = newv;
     });
-    return TinySeq(ret);
+    return new TinySeq(ret);
   }
 
-  const size = () => {
-    if(_isArray())
-      return _d.length;
-    else if(_isObject())
-      return Object.keys(_d).length;
+  size(){
+    if(this._isArray())
+      return this._d.length;
+    else if(this._isObject())
+      return Object.keys(this._d).length;
     throw new Error('Unreachable');
   }
 
-  const concat = (...args) => {
-    args = TinySeq(args).map(e=>TinySeq(e)).toArray();
+  concat(...args){
+    args = new TinySeq(args).map(e=>createSeq(e)).toArray();
 
     let indexed = args.reduce(
         (prev, cur) => prev && cur.isIndexed(),
-        isIndexed()
+        this.isIndexed()
       );
+
     if(indexed){
-      let d = toArray();
+      let d = this.toArray();
       args.forEach(e => {
         d = d.concat(e.toArray());
       });
-      return TinySeq(d);
+      return new TinySeq(d);
     }else{
       let d = {};
       const addEls = (e,k) => {d[k] = e;};
-      forEach(addEls);
+      this.forEach(addEls);
       args.forEach((e) => e.forEach(addEls));
-      return TinySeq(d);
+      return new TinySeq(d);
     }
   }
 
-  return {
-    toKeyed,
-    toIndexed,
-    isIndexed,
-    isKeyed,
-    forEach,
-    first,
-    size,
-    map,
-    mapValues,
-    concat,
-    isKeyed,
-    toRaw,
-    filter,
-    toArray,
-    toObject,
-  };
-}
+};
 
-export default TinySeq;
+function createSeq(_d){
+  if(_d && isObject(_d) && _d !== null && _d instanceof TinySeq)
+    return _d;
+  return new TinySeq(_d);
+}
+createSeq.class = TinySeq;
+
+export default createSeq;
 export {isObject};

@@ -10,6 +10,8 @@ const defaultProperties = {uuid: {
 const deletedGetSet = () => { throw new Error('This object was deleted'); };
 
 const beforeSet = function({update}, k, v) {
+  this._updateVersion();
+  this._cachedImmutable = null;
   let oldVal = this[k];
   if(v !== oldVal && oldVal !== undefined && update){
     v = update(this,v);
@@ -29,9 +31,20 @@ export default class Entity{
     delete this._navigation[k][entity[key]];
   }
 
+  _updateVersion(){
+    this._version = this._db.genVersion();
+  }
+
   addRef(k, entity){
     const key = this._navDef[k].source;
     this._navigation[k][entity[key]] = entity;
+  }
+
+  _getImmutable(){
+    if(this._cachedImmutable){
+      return this._cachedImmutable;
+    }
+    return this._cachedImmutable = false;    
   }
 
   static build(entity, db){
@@ -66,22 +79,6 @@ export default class Entity{
       }
     });
 
-/*    const buildReferenceId = (property, k) => {
-      const refk = k.substring(0, k.length-2);
-      return {
-        set: function(uuid){
-          const entity = db[property.type][uuid];
-          if(!entity)
-            throw new Error("setting reference through "+k+" : Entity "+propety.type+"["+uuid+"]");
-          this[refk] = entity;
-        },
-        get: function(){
-          const entity = this[refk];
-          return entity ? entity.uuid : undefined;
-        }
-      }
-    }
-*/
     const buildProperty = (property, k) => {
       const set = property.set || function(v){
         this._data[k] = v;
@@ -144,6 +141,8 @@ export default class Entity{
     this._ref = {};
     this._data = {};
     this._navigation = TinySeq(this._navDef).map(_=>({})).toObject();
+
+    this._cachedImmutable = null;
     this._create(data);
   }
 
