@@ -3,6 +3,13 @@ import { assert, expect } from 'chai';
 
 describe('TinySeq', () => {
   describe('#basics', () => {
+    it("hasClassProperty", () => {
+        let instance = TinySeq({});
+        expect(instance)
+            .to.be.an.instanceof(Object);
+        expect(instance)
+            .to.be.an.instanceof(TinySeq.class);
+    });
     it("arrInit", () => {
         expect(TinySeq([1,{a:1,b:2},3]).toArray())
             .to.deep.equal([1,{a:1,b:2},3]);
