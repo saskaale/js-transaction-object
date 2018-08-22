@@ -1,6 +1,7 @@
 import DataStruct from './src/datastruct';
 import {createDatabase, createEntity, Entity, Database} from './src/orm';
 import {TinySeq} from './src/utils';
+const WebSocket = require('websocket').w3cwebsocket;
 
 
 const datastruct = new DataStruct();

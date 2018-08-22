@@ -1,4 +1,4 @@
-import TinySeq, {isObject} from './tinySeq';
+import TinySeq, {isObject, isSeq} from './tinySeq';
 
 function enchanceKey(obj, k, defaultVal){
   return TinySeq(obj).map(e => {
@@ -31,4 +31,4 @@ function extend(o = {}){
   return o;
 }
 
-export {TinySeq, enchanceKey, defaultKey, one2Arr, extend}
+export {TinySeq, isSeq, enchanceKey, defaultKey, one2Arr, extend}

@@ -157,5 +157,9 @@ function createSeq(_d){
 }
 createSeq.class = TinySeq;
 
+function isSeq(e){
+  return e instanceof TinySeq;
+}
+
 export default createSeq;
-export {isObject};
+export {isObject, isSeq};

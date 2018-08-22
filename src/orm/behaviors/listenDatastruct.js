@@ -21,7 +21,13 @@ export default (parent) => class extends parent{
     if(datastruct.data)
       this._data = datastruct.data;
   }
+  get datastruct(){
+    return this._datastruct;
+  }
   _listenDataChange({diff}){
+    console.log("LISTEN datachange");
+    console.log(diff);
+
     const doRemove = (path, addStep = 0) => {
       if(addStep <= 0){
         if(path.length > 1){

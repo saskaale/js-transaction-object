@@ -83,9 +83,16 @@ export default class Entity{
       const set = property.set || function(v){
         this._data[k] = v;
       };
-      const get = property.get || function(){
-        return this._data[k];
-      };
+      const get = property.get || (
+        property.defaultValue !== undefined ? function(){
+          let v = this._data[k];
+          if(v === undefined)
+            return property.defaultValue;
+          else
+            return v;
+        } : function(){
+          return this._data[k];
+        });
 
       return {
         set: function(v){
