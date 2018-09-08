@@ -18,7 +18,26 @@ const Commitable = (parent) => class extends parent{
     super(...args);
     this.subscribtions = new Map();
   }
-  commit(user=true, skipCommits=undefined){
+  subscribeAll(type, data, skipSubscribers){
+    const tosend = {
+      type,
+      data
+    };
+
+    if(this.subscribtions){
+      this.subscribtions.forEach(subscribtion => {
+        if(skipSubscribers && skipSubscribers.has(subscribtion))
+          return;
+        try{
+          subscribtion(tosend);
+        }catch(e){
+          console.error("!!!!ERROR in the subscribe occured");
+          console.error(e);
+        }
+      });
+    }
+  }
+  commit(user=true, skipSubscribers){
     const oldhistory = this._history.last()[1];
     if(oldhistory.data !== this.immutable){
       this._history.onNew(this._version, this.immutable);
@@ -26,16 +45,7 @@ const Commitable = (parent) => class extends parent{
       if(user && this.subscribtions.size){
         const newhistory = this._history.last()[1];
         const datadiff = this._commitMsg(oldhistory, newhistory);
-        this.subscribtions.forEach(subscribtion => {
-          if(skipCommits && skipCommits.has(subscribtion))
-            return;
-          try{
-            subscribtion(datadiff);
-          }catch(e){
-            console.error("!!!!ERROR in the subscribe occured");
-            console.error(e);
-          }
-        });
+        this.subscribeAll("commit", datadiff, skipSubscribers);
       }
     }
   }

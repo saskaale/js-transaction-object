@@ -126,9 +126,12 @@ describe('merger', () => {
       expect(mychanges2.length).to.eq(0);
 
       let withoutFirst = new Set([subscriber]);
-      mychanges.forEach((e) => {
-        merger(obj2, e, {skipSubscribers: withoutFirst});
+      mychanges.filter(e=>e.type==='commit').forEach(({data}) => {
+        merger(obj2, data, {skipSubscribers: withoutFirst});
       });
+
+      expect(mychanges.filter(e=>e.type !== 'commit')).to.be.empty;
+
 
       expect(mychanges.length).to.eq(3);
       expect(mychanges2.length).to.eq(3);

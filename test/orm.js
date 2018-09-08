@@ -1,8 +1,6 @@
 import { assert, expect } from 'chai';
 
-import DataStruct,{ORM, TinySeq} from '../';
-
-const {createDatabase, createEntity, Entity, Database} = ORM;
+import DataStruct,{createDatabase, createEntity, Entity, Database, TinySeq} from '../';
 
 const chaiPromise = (msg, action) => {
   return new Promise((resolve, reject) => {

@@ -115,13 +115,13 @@ export default function connect(WrappedComponent, mapStateToProps, db){
             if (this.unsubscribe) {
                 this.subscription();
             }
-            this.unsubscribe = null
-            this.isUnmounted = true
+            this.unsubscribe = null;
+            this.isUnmounted = true;
             this.store = null;
         }
         render() {
             if (this.state.error) {
-              throw this.state.error
+              throw this.state.error;
             } else {
               return createElement(WrappedComponent, this.addExtraProps(this.state.props));
             }

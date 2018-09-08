@@ -21,9 +21,15 @@ export default class History{
   }
   find(commit){
     if(typeof(commit) === 'number'){
-      if(commit >= 0 && commit < this._queue.length){
-        return this.queue.nth(commit);
+      let foundResult = 0;
+      if(commit < 0){
+        commit = Math.max(commit, -this._queue.length);
+        foundResult = this._queue.nth(this._queue.length+commit);
+      }else if(commit >= 0){
+        commit = Math.min(commit, this._queue.nth(commit)-1);
+        foundResult = this._queue.nth(commit);
       }
+      return [commit, foundResult];
     }
     for(const [i, d] of this._queue.beginEnd()){
       if(d.uuid === commit){

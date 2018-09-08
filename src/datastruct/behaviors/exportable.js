@@ -16,12 +16,12 @@ export default (parent) => class extends parent{
       }
 
       return {
-        data: data.toJSON(),
+        data: data ? data.toJSON() : {},
         uuid,
         changes
       }
     }
-    fromJS({data, uuid, changes = []}){
+    fromJS({data, uuid, changes = []}, skipSubscribers){
       this._started = false;
 
       this._version = uuid || this.newUuid();
@@ -30,6 +30,7 @@ export default (parent) => class extends parent{
       this.begin(false, uuid);
       this.immutable = data;
       this.commit(false);
+      this.subscribeAll("reset", {data,uuid}, skipSubscribers);
       changes.forEach(this.patch.bind(this));
     }
 };

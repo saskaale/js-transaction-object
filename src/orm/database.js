@@ -14,6 +14,8 @@ const Database =  ListenDatastruct(class{
   }
 
   _createData(Entity, uuid){
+    if(this._data[Entity] === undefined)
+      this._data[Entity] = {};
     if(this._data[Entity][uuid] === undefined)
       this._data[Entity][uuid] = {};
     return this._data[Entity][uuid];
@@ -24,10 +26,21 @@ const Database =  ListenDatastruct(class{
   }
 
   _delete(entity){
-    if(this[entity.className][entity.uuid])
+
+    if(
+      this[entity.className]
+      &&
+      this[entity.className][entity.uuid]
+    ){
       delete this[entity.className][entity.uuid];
-    if(this._data[entity.className][entity.uuid])
+    }
+    if(
+      this._data[entity.className] 
+      && 
+      this._data[entity.className][entity.uuid]
+    ){
       delete this._data[entity.className][entity.uuid];
+    }
   }
 
   build(){

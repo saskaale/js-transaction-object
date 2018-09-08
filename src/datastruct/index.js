@@ -65,6 +65,9 @@ const DataStruct = Commitable(Exportable(class{
   get transactionUuid(){
     return this._version;
   }
+  get curVersion(){
+    return this._version;
+  }
   get inTransaction(){
     return this._started;
   }
@@ -82,8 +85,8 @@ const DataStruct = Commitable(Exportable(class{
     this._version = history.uuid;
     this._immutable = history.data;
   }
-  find(commit){
-    return this._history.find(commit);
+  find(commit, limitEnd){
+    return this._history.find(commit, limitEnd);
   }
 }));
 

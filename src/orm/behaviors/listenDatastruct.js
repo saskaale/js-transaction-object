@@ -24,10 +24,17 @@ export default (parent) => class extends parent{
   get datastruct(){
     return this._datastruct;
   }
-  _listenDataChange({diff}){
-    console.log("LISTEN datachange");
-    console.log(diff);
-
+  _listenDataChange({data, type}){
+    switch(type){
+      case "commit":
+        return this._listenCommit(data);
+      case "reset":
+        return this._listenCommit({diff:[{op: "replace",     path:"/", value: data.data}]});
+      default:
+        throw new Error("Unknown type of result");
+    }
+  }
+  _listenCommit({diff}){
     const doRemove = (path, addStep = 0) => {
       if(addStep <= 0){
         if(path.length > 1){
@@ -38,8 +45,11 @@ export default (parent) => class extends parent{
             else
               entity.delete();
           }
-        }else{
+        }else if(path.length > 0){
           TinySeq(this[path[0]]).forEach(e=>e.delete());
+        }else{
+          //remove all entities
+          TinySeq(this.Entities).forEach((_,k) => doRemove([k], addStep));
         }
       }
     }
@@ -69,9 +79,16 @@ export default (parent) => class extends parent{
         if(path.length > 2)
           value = {[path[2]]:value};
         upsertEntity(path[0], path[1], value, addStep);
-      }else{
+      }else if(path.length > 0){
         TinySeq(value).forEach((entityValue, entityId)=>{
           upsertEntity(path[0], entityId, entityValue, addStep);
+        });
+      }else{
+        //remove all entities and recreate them with new ones
+        TinySeq(this.Entities).forEach((_,k) => {
+          doRemove([k], addStep);
+          if(value[k])
+            doUpsert([k], value[k] || {}, addStep);
         });
       }
     }
@@ -82,7 +99,12 @@ export default (parent) => class extends parent{
     for(let addStep = 0; addStep < 2; addStep++){ //phases
       diff.forEach(diffEl => {
         let {op, path, value} = diffEl;
-        path = path.substr(1).split('/');
+
+        if(path.length > 1)
+          path = path.substr(1).split('/');
+        else
+          path = [];
+
         switch(op){
           case 'add':
             doUpsert(path, value, addStep);
@@ -95,6 +117,6 @@ export default (parent) => class extends parent{
             break;
         }
       });
-    }
+    }    
   }
 };

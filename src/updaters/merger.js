@@ -1,4 +1,4 @@
-import {TinySeq} from './utils';
+import {TinySeq} from '../utils';
 
 /*
  * strategy

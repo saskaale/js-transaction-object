@@ -176,6 +176,11 @@ describe('DataStruct', () => {
 
     assert(mychanges.length === 2);
     const objdump = obj.toJS(startuuid);
-    expect(objdump.changes).to.deep.equal(mychanges);
+
+    expect(objdump.changes).to.deep.equal(
+        mychanges.filter(e=>e.type ==='commit').map(e => e.data)
+    );
+
+    expect(mychanges.filter(e=>e.type !=='commit')).to.be.empty;
   });
 });
