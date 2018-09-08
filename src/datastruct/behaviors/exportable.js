@@ -31,6 +31,8 @@ export default (parent) => class extends parent{
       this.immutable = data;
       this.commit(false);
       this.subscribeAll("reset", {data,uuid}, skipSubscribers);
-      changes.forEach(this.patch.bind(this));
+      changes.forEach((e) => {
+        this.patch(e, skipSubscribers);
+      });
     }
 };
